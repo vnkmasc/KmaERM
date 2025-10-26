@@ -1,0 +1,23 @@
+# Cấu hình Môi trường (Environment configuration)
+.env
+*.env.*
+
+# Tệp nhị phân và tệp thực thi Go (Go binaries and executables)
+*.exe
+*.dll
+*.so
+*.o
+*.a
+*.lib
+
+# Thư mục build, cache, và tạm thời (Build, cache, and temp directories)
+/tmp/
+/dist/
+/vendor/
+
+# Tệp thực thi chính (Main executable)
+# Tùy thuộc vào cách bạn build, có thể là server.exe hoặc tên khác
+server.exe
+
+# Cấu hình air (Tùy chọn, thường an toàn để giữ nếu bạn dùng riêng)
+# .air.toml
