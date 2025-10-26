@@ -2,6 +2,7 @@
 .env
 *.env.*
 
+
 # Tệp nhị phân và tệp thực thi Go (Go binaries and executables)
 *.exe
 *.dll
@@ -14,6 +15,7 @@
 /tmp/
 /dist/
 /vendor/
+../uploads/
 
 # Tệp thực thi chính (Main executable)
 # Tùy thuộc vào cách bạn build, có thể là server.exe hoặc tên khác
