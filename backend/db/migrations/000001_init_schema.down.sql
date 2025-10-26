@@ -1,0 +1,6 @@
+DROP TABLE IF EXISTS giay_phep;
+DROP TABLE IF EXISTS tai_lieu;
+DROP TABLE IF EXISTS ho_so_tai_lieu;
+DROP TABLE IF EXISTS loai_tai_lieu;
+DROP TABLE IF EXISTS ho_so;
+DROP TABLE IF EXISTS doanh_nghiep;
