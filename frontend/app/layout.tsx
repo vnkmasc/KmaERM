@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
-import './globals.css'
+import '@/public/assets/styles/globals.css'
+import { ThemeProvider } from '@/components/providers/theme-provider'
+import SwrProvider from '@/components/providers/swr-provider'
+import { Toaster } from 'sonner'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -14,7 +17,10 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'KmaERM',
-  description: 'Trang quản lý doanh nghiệp KMA'
+  description: 'Trang quản lý doanh nghiệp KMA',
+  icons: {
+    icon: '/assets/images/logo.png'
+  }
 }
 
 export default function RootLayout({
@@ -23,8 +29,15 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang='en'>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>{children}</body>
+    <html lang='vi'>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <ThemeProvider>
+          <SwrProvider>
+            {children}
+            <Toaster expand={true} />
+          </SwrProvider>
+        </ThemeProvider>
+      </body>
     </html>
   )
 }
