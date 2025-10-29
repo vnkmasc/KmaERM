@@ -8,4 +8,12 @@ export default class AuthService {
     })
     return res
   }
+
+  static async signUp(email: string, password: string) {
+    const res = await goService('/auth/signup', {
+      method: 'POST',
+      body: JSON.stringify({ email, password })
+    })
+    return res
+  }
 }

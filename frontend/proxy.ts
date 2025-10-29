@@ -19,12 +19,12 @@ export default async function middleware(req: NextRequest) {
   const session = await decrypt(cookie)
 
   //4. Redirect to /auth/sign-in if the user is not authenticated and trying to access protected routes
-  if (isProtectedRoute && !session?.access_token) {
+  if (isProtectedRoute && !session?.accessToken) {
     return NextResponse.redirect(new URL('/auth/sign-in', req.nextUrl))
   }
 
   // 5. Role-based access control for authenticated users
-  if (session?.access_token) {
+  if (session?.accessToken) {
     const userRole = session.role
 
     // Check if admin is trying to access education admin routes

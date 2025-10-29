@@ -11,7 +11,11 @@ export async function signOut() {
 
 export async function signIn(payload: { email: string; password: string }) {
   try {
-    const data = await AuthService.signIn(payload.email, payload.password)
+    // const data = await AuthService.signIn(payload.email, payload.password)
+    const data = {
+      token: 'mocked-jwt-token',
+      role: 'admin'
+    }
 
     if (!data.token) {
       return false

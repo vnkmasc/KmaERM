@@ -22,8 +22,8 @@ export async function decrypt(session: string | undefined = '') {
     })
 
     return payload
-  } catch (error) {
-    console.error(error)
+  } catch {
+    console.error('Error decrypting session')
   }
 }
 
