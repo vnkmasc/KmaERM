@@ -68,7 +68,7 @@ export default function SignInPage() {
               control={form.control}
               name='email'
               label='Email'
-              placeholder='Nhập email (VD: example@gmail.com)'
+              placeholder='Nhập email'
               setting={{ input: { type: 'email' } }}
               required
             />

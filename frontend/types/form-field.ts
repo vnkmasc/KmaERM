@@ -30,6 +30,5 @@ export interface ICustomField {
 }
 
 export interface IZodCustomField extends Omit<ICustomField, 'control'> {
-  validators?: z.ZodType
-  defaultValue?: string
+  validator?: z.ZodType
 }

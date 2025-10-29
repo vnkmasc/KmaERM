@@ -65,8 +65,8 @@ const Header: React.FC<Props> = (props) => {
   ]
 
   return (
-    <>
-      <header className='fixed top-0 z-10 container flex h-16 w-full items-center justify-between bg-white shadow-lg dark:bg-black'>
+    <div className='fixed top-0 z-10 h-16 w-full shadow-lg'>
+      <header className='container flex h-full items-center justify-between bg-white dark:bg-black'>
         {props.role !== null ? (
           <div className='flex gap-2 md:hidden'>
             <Sheet>
@@ -166,7 +166,7 @@ const Header: React.FC<Props> = (props) => {
         )}
       </header>
       <SignoutDialog open={openSignoutDialog} onOpenChange={setOpenSignoutDialog} />
-    </>
+    </div>
   )
 }
 
