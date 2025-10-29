@@ -10,8 +10,8 @@ type DoanhNghiepRepository interface {
 	Create(dn *models.DoanhNghiep) (*models.DoanhNghiep, error)
 	GetByID(id uuid.UUID) (*models.DoanhNghiep, error)
 	GetByMaSo(maSo string) (*models.DoanhNghiep, error)
-	List(page, limit int) ([]models.DoanhNghiep, int64, error)
 	Update(dn *models.DoanhNghiep) (*models.DoanhNghiep, error)
+	List(page, limit int, tenVI, tenEN, vietTat, maSo string) ([]models.DoanhNghiep, int64, error)
 	Delete(id uuid.UUID) error
 	UploadGCN(id uuid.UUID, filePath string) error
 }
@@ -54,29 +54,45 @@ func (r *doanhNghiepRepo) GetByMaSo(maSo string) (*models.DoanhNghiep, error) {
 	return &dn, nil
 }
 
-func (r *doanhNghiepRepo) List(page, limit int) ([]models.DoanhNghiep, int64, error) {
+func (r *doanhNghiepRepo) List(page, limit int, tenVI, tenEN, vietTat, maSo string) ([]models.DoanhNghiep, int64, error) {
 	var dns []models.DoanhNghiep
 	var total int64
 
-	// Đặt giá trị mặc định cho phân trang
+	// Phân trang mặc định
 	if page <= 0 {
 		page = 1
 	}
 	if limit <= 0 {
 		limit = 10
 	}
-	// Giới hạn limit tối đa để bảo vệ CSDL
 	if limit > 100 {
 		limit = 100
 	}
-
 	offset := (page - 1) * limit
 
-	// Đếm tổng số bản ghi
-	r.db.Model(&models.DoanhNghiep{}).Count(&total)
+	query := r.db.Model(&models.DoanhNghiep{})
+
+	// Thêm điều kiện tìm kiếm nếu có param
+	if tenVI != "" {
+		query = query.Where("LOWER(ten_doanh_nghiep_vi) ILIKE LOWER(?)", "%"+tenVI+"%")
+	}
+	if tenEN != "" {
+		query = query.Where("LOWER(ten_doanh_nghiep_en) ILIKE LOWER(?)", "%"+tenEN+"%")
+	}
+	if vietTat != "" {
+		query = query.Where("LOWER(ten_viet_tat) ILIKE LOWER(?)", "%"+vietTat+"%")
+	}
+	if maSo != "" {
+		query = query.Where("ma_so_doanh_nghiep ILIKE ?", "%"+maSo+"%")
+	}
+
+	// Đếm tổng số bản ghi phù hợp
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
 
 	// Lấy dữ liệu phân trang
-	result := r.db.Preload("HoSos").Limit(limit).Offset(offset).Order("created_at desc").Find(&dns)
+	result := query.Preload("HoSos").Limit(limit).Offset(offset).Order("created_at desc").Find(&dns)
 	if result.Error != nil {
 		return nil, 0, result.Error
 	}

@@ -24,12 +24,12 @@ type DoanhNghiepService interface {
 	Create(dn *models.DoanhNghiep) (*models.DoanhNghiep, error)
 	GetByID(id uuid.UUID) (*models.DoanhNghiep, error)
 	GetByMaSo(maSo string) (*models.DoanhNghiep, error)
-	List(page, limit int) ([]models.DoanhNghiep, int64, error)
 	ChangeMSDN(id uuid.UUID, input *ChangeMSDNInput) (*models.DoanhNghiep, error)
 	Update(id uuid.UUID, dnData *models.DoanhNghiep) (*models.DoanhNghiep, error)
 	Delete(id uuid.UUID) error
 	UploadGCN(id uuid.UUID, fileData []byte, originalFilename string) (*models.DoanhNghiep, error)
 	GetGCNFilePath(id uuid.UUID) (string, error)
+	List(page, limit int, tenVI, tenEN, vietTat, maSo string) ([]models.DoanhNghiep, int64, error)
 }
 
 type doanhNghiepService struct {
@@ -62,12 +62,8 @@ func (s *doanhNghiepService) GetByMaSo(maSo string) (*models.DoanhNghiep, error)
 	return s.dnRepo.GetByMaSo(maSo)
 }
 
-func (s *doanhNghiepService) List(page, limit int) ([]models.DoanhNghiep, int64, error) {
-	dns, total, err := s.dnRepo.List(page, limit)
-	if err != nil {
-		return nil, 0, err
-	}
-	return dns, total, nil
+func (s *doanhNghiepService) List(page, limit int, tenVI, tenEN, vietTat, maSo string) ([]models.DoanhNghiep, int64, error) {
+	return s.dnRepo.List(page, limit, tenVI, tenEN, vietTat, maSo)
 }
 
 func (s *doanhNghiepService) Update(id uuid.UUID, dnData *models.DoanhNghiep) (*models.DoanhNghiep, error) {
