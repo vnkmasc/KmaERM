@@ -47,7 +47,7 @@ const Filter: React.FC<Props> = (props) => {
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
     props.onFilter(data)
-    router.push(`${queryString(data)}`, { scroll: false })
+    router.replace(`${queryString(data)}`)
   }
   const handleReset = () => {
     const emptyValues = props.items.reduce(
@@ -59,7 +59,7 @@ const Filter: React.FC<Props> = (props) => {
     )
     form.reset(emptyValues)
     props.onFilter(emptyValues)
-    router.push(pathname, { scroll: false })
+    router.replace(pathname)
   }
 
   return (

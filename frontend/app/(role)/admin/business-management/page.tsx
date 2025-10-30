@@ -1,19 +1,31 @@
 'use client'
 
+import CustomPagination from '@/components/common/custom-pagination'
 import CustomTable from '@/components/common/custom-table'
 import PageHeader from '@/components/common/page-header'
+import DetailDialog from '@/components/role/admin/common/detail-dialog'
 import Filter from '@/components/role/admin/common/filter'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { ButtonGroup } from '@/components/ui/button-group'
 import { getInitialSearchParamsToObject } from '@/lib/utils/common'
+import { validateVNIPhoneNumber } from '@/lib/utils/validators'
 import BusinessService from '@/services/go/business.service'
-import { PlusIcon } from 'lucide-react'
-import { useState } from 'react'
+import { Pencil, PlusIcon } from 'lucide-react'
+import { useCallback, useState } from 'react'
 import useSWR from 'swr'
 
 const BusinessManagementPage = () => {
   const defaultFilter = getInitialSearchParamsToObject()
   const [filter, setFilter] = useState<any>(defaultFilter)
+  const [idDetail, setIdDetail] = useState<string | undefined | null>(undefined)
+
+  const handleChangePage = useCallback(
+    (page: number) => {
+      setFilter({ ...filter, page })
+    },
+    [filter]
+  )
 
   const querySearchBusinesses = useSWR('business' + JSON.stringify(filter), () =>
     BusinessService.searchBusinesses({
@@ -25,12 +37,14 @@ const BusinessManagementPage = () => {
     })
   )
 
+  const queryBusinessDetail = useSWR(idDetail, () => BusinessService.getBusinessById(idDetail as string))
+
   return (
     <div>
       <PageHeader
         title='Quản lý doanh nghiệp'
         actions={[
-          <Button key='add-business'>
+          <Button key='add-business' onClick={() => setIdDetail(null)}>
             <PlusIcon /> <span className='hidden md:block'>Tạo mới</span>
           </Button>
         ]}
@@ -65,7 +79,98 @@ const BusinessManagementPage = () => {
             value: 'status',
             render: (item) =>
               item.status ? <Badge>Hoạt động</Badge> : <Badge variant='destructive'>Ngừng hoạt động</Badge>
+          },
+          {
+            header: 'Hành động',
+            value: 'action',
+            render: (item) => (
+              <ButtonGroup>
+                <Button
+                  size='icon'
+                  onClick={() => setIdDetail(item.id)}
+                  isLoading={queryBusinessDetail.isValidating && idDetail === item.id}
+                >
+                  <Pencil />
+                </Button>
+              </ButtonGroup>
+            )
           }
+        ]}
+      />
+      <CustomPagination
+        page={querySearchBusinesses.data?.page}
+        totalPage={querySearchBusinesses.data?.total}
+        onChangePage={handleChangePage}
+      />
+      <DetailDialog
+        mode={idDetail ? 'update' : idDetail === undefined ? undefined : 'create'}
+        title='Chi tiết doanh nghiệp'
+        onClose={() => {
+          setIdDetail(undefined)
+        }}
+        onSubmit={(data) => {}}
+        defaultValues={queryBusinessDetail.data || {}}
+        items={[
+          {
+            name: 'viName',
+            label: 'Tên doanh nghiệp (VI)',
+            type: 'input',
+            required: true,
+            placeholder: 'Nhập tên doanh nghiệp (VI)'
+          },
+          { name: 'enName', label: 'Tên doanh nghiệp (EN)', type: 'input', placeholder: 'Nhập tên doanh nghiệp (EN)' },
+          { name: 'abbreviation', label: 'Tên viết tắt', type: 'input', placeholder: 'Nhập tên viết tắt' },
+          { name: 'address', label: 'Địa chỉ', type: 'input', required: true, placeholder: 'Nhập địa chỉ' },
+          {
+            name: 'businessCode',
+            label: 'Mã số doanh nghiệp',
+            type: 'input',
+            required: true,
+            placeholder: 'Nhập mã số doanh nghiệp'
+          },
+          // {
+          //   name: 'firstIssuedDate',
+          //   label: 'Ngày cấp lần đầu MSDN',
+          //   type: 'input',
+          //   required: true,
+          //   placeholder: 'Nhập ngày cấp lần đầu MSDN',
+          //   setting: {
+          //     input: { type: 'date' }
+          //   }
+          // },
+          // { name: 'issuedBy', label: 'Nơi cấp MSDN', type: 'input', required: true, placeholder: 'Nhập nơi cấp MSDN' },
+          // {
+          //   name: 'phoneNumber',
+          //   label: 'Số điện thoại',
+          //   type: 'input',
+          //   validator: validateVNIPhoneNumber,
+          //   placeholder: 'Nhập số điện thoại'
+          // },
+          // {
+          //   name: 'email',
+          //   label: 'Email',
+          //   type: 'input',
+          //   setting: { input: { type: 'email' } },
+          //   placeholder: 'Nhập email'
+          // },
+          // { name: 'website', label: 'Website', type: 'input', placeholder: 'Nhập website' },
+          // { name: 'charterCapital', label: 'Vốn điều lệ (VND)', type: 'input', placeholder: 'Nhập vốn điều lệ (VND)' },
+          // {
+          //   name: 'legalRepresentative',
+          //   label: 'Người đại diện pháp luật',
+          //   type: 'input',
+          //   placeholder: 'Nhập người đại diện pháp luật'
+          // },
+          // { name: 'position', label: 'Chức vụ', type: 'input', placeholder: 'Nhập chức vụ' },
+          // { name: 'idType', label: 'Loại giấy tờ', type: 'input', placeholder: 'Nhập loại giấy tờ' },
+          // {
+          //   name: 'idIssuedDate',
+          //   label: 'Ngày cấp giấy tờ',
+          //   type: 'input',
+          //   setting: { input: { type: 'date' } },
+          //   placeholder: 'Nhập ngày cấp giấy tờ'
+          // },
+          { name: 'idIssuedBy', label: 'Nơi cấp giấy tờ', type: 'input', placeholder: 'Nhập nơi cấp giấy tờ' }
         ]}
       />
     </div>
