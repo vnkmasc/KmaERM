@@ -9,7 +9,7 @@ interface Props {
   pageSize?: number
 }
 
-const TableList: React.FC<Props> = (props) => {
+const CustomTable: React.FC<Props> = (props) => {
   return (
     <Table className='mt-4'>
       <TableHeader>
@@ -45,4 +45,4 @@ const TableList: React.FC<Props> = (props) => {
   )
 }
 
-export default TableList
+export default CustomTable

@@ -2,7 +2,7 @@
 
 import { Button } from '../ui/button'
 import Image from 'next/image'
-import { LogInIcon, MenuIcon, Settings } from 'lucide-react'
+import { ChevronsUpDown, LogInIcon, MenuIcon, Settings } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '../ui/sheet'
 import {
   NavigationMenu,
@@ -28,6 +28,7 @@ import ThemeSwitch from './theme-switch'
 import UseBreakpoint from '@/hooks/use-breakpoint'
 import { useState } from 'react'
 import SignoutDialog from './signout-dialog'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible'
 
 interface Props {
   role: 'admin' | null
@@ -80,13 +81,33 @@ const Header: React.FC<Props> = (props) => {
                 <SheetHeader>
                   <SheetTitle className='text-start'>Chức năng</SheetTitle>
                 </SheetHeader>
-                {adminPages.map((item) => (
-                  <Link href={item.href ?? ''} key={item.href}>
-                    <Button variant={'link'} className=' '>
-                      {item.title}
-                    </Button>
-                  </Link>
-                ))}
+                {adminPages.map((item) =>
+                  item.href ? (
+                    <Link href={item.href} key={item.href}>
+                      <Button variant={'link'}>{item.title}</Button>
+                    </Link>
+                  ) : (
+                    <Collapsible key={item.title}>
+                      <CollapsibleTrigger asChild>
+                        <Button variant={'link'} className='gap-4'>
+                          {item.title}
+                          <ChevronsUpDown />
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <ul className='pl-4'>
+                          {item.groups?.map((group) => (
+                            <li key={group.href}>
+                              <Link href={group.href}>
+                                <Button variant={'link'}>{group.title}</Button>
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  )
+                )}
               </SheetContent>
             </Sheet>
           </div>

@@ -12,10 +12,10 @@ interface Props {
   page: number
   totalPage: number
   // eslint-disable-next-line no-unused-vars
-  handleChangePage: (page: number) => void
+  onChangePage: (page: number) => void
 }
 
-const CommonPagination = ({ page, totalPage, handleChangePage }: Props) => {
+const CustomPagination = ({ page, totalPage, onChangePage }: Props) => {
   // Helper function to generate page numbers to display
   const getPageNumbers = () => {
     const pages: (number | 'ellipsis')[] = []
@@ -64,7 +64,7 @@ const CommonPagination = ({ page, totalPage, handleChangePage }: Props) => {
         <PaginationContent>
           <PaginationItem className='cursor-pointer'>
             <PaginationPrevious
-              onClick={() => page > 1 && handleChangePage(page - 1)}
+              onClick={() => page > 1 && onChangePage(page - 1)}
               className={page <= 1 ? 'pointer-events-none opacity-50' : ''}
             />
           </PaginationItem>
@@ -74,7 +74,7 @@ const CommonPagination = ({ page, totalPage, handleChangePage }: Props) => {
               {pageNum === 'ellipsis' ? (
                 <PaginationEllipsis />
               ) : (
-                <PaginationLink onClick={() => handleChangePage(pageNum)} isActive={pageNum === page}>
+                <PaginationLink onClick={() => onChangePage(pageNum)} isActive={pageNum === page}>
                   {pageNum}
                 </PaginationLink>
               )}
@@ -83,7 +83,7 @@ const CommonPagination = ({ page, totalPage, handleChangePage }: Props) => {
 
           <PaginationItem className='cursor-pointer'>
             <PaginationNext
-              onClick={() => page < totalPage && handleChangePage(page + 1)}
+              onClick={() => page < totalPage && onChangePage(page + 1)}
               className={page >= totalPage ? 'pointer-events-none opacity-50' : ''}
             />
           </PaginationItem>
@@ -93,4 +93,4 @@ const CommonPagination = ({ page, totalPage, handleChangePage }: Props) => {
   )
 }
 
-export default CommonPagination
+export default CustomPagination

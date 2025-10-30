@@ -1,9 +1,13 @@
+'use client'
+
 import CustomField from '@/components/common/custom-field'
 import { Button } from '@/components/ui/button'
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { queryString } from '@/lib/utils/common'
 import { IZodCustomField } from '@/types/form-field'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { CircleXIcon, SearchIcon } from 'lucide-react'
+import { CircleXIcon, RefreshCcw, SearchIcon } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
 import { Dispatch, SetStateAction } from 'react'
 import { useForm } from 'react-hook-form'
 import z from 'zod'
@@ -12,9 +16,13 @@ interface Props {
   items: IZodCustomField[]
   onFilter: Dispatch<SetStateAction<any>>
   defaultValues?: any
+  refreshQuery: () => void
 }
 
 const Filter: React.FC<Props> = (props) => {
+  const pathname = usePathname()
+  const router = useRouter()
+
   const formSchema = z.object(
     props.items.reduce(
       (acc, obj) => {
@@ -29,7 +37,8 @@ const Filter: React.FC<Props> = (props) => {
     resolver: zodResolver(formSchema),
     defaultValues: props.items.reduce(
       (acc, obj) => {
-        acc[obj.name] = props.defaultValues ? props.defaultValues[obj.name] : ''
+        acc[obj.name] = props.defaultValues?.[obj.name] ?? ''
+
         return acc
       },
       {} as Record<string, string>
@@ -38,18 +47,31 @@ const Filter: React.FC<Props> = (props) => {
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
     props.onFilter(data)
+    router.push(`${queryString(data)}`, { scroll: false })
   }
   const handleReset = () => {
-    form.reset()
-    props.onFilter(form.getValues())
+    const emptyValues = props.items.reduce(
+      (acc, obj) => {
+        acc[obj.name] = ''
+        return acc
+      },
+      {} as Record<string, string>
+    )
+    form.reset(emptyValues)
+    props.onFilter(emptyValues)
+    router.push(pathname, { scroll: false })
   }
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Tìm kiếm</CardTitle>
-        <CardAction>
-          <Button variant='destructive' onClick={handleReset} isLoading={form.formState.isSubmitting}>
+        <CardAction className='space-x-2'>
+          <Button variant={'secondary'} onClick={props.refreshQuery}>
+            <RefreshCcw />
+            <span className='hidden md:block'>Làm mới</span>
+          </Button>
+          <Button variant='destructive' onClick={handleReset}>
             <CircleXIcon />
             <span className='hidden md:block'>Xóa bộ lọc</span>
           </Button>

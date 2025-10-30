@@ -30,3 +30,26 @@ export const showNotification = (
     ...setting
   })
 }
+
+export const queryString = (params: Record<string, any>): string => {
+  const query = Object.entries(params)
+    .filter(([, value]) => Boolean(value)) // bỏ giá trị falsy
+    .map(([key, value]) => encodeURIComponent(key) + '=' + encodeURIComponent(String(value)))
+    .join('&')
+
+  return query ? `?${query}` : ''
+}
+
+export function searchParamsToObject(searchParams: URLSearchParams): Record<string, string> {
+  const obj: Record<string, string> = {}
+  for (const [key, value] of searchParams.entries()) {
+    obj[key] = value
+  }
+  return obj
+}
+
+export const getInitialSearchParamsToObject = (): Record<string, string> => {
+  if (typeof window === 'undefined') return {}
+  const searchParams = new URLSearchParams(window.location.search)
+  return searchParamsToObject(searchParams)
+}
