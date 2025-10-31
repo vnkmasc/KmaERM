@@ -1,4 +1,4 @@
-import { IBusiness } from '@/types/business'
+import { IBusiness, IUpdateBusinessCode } from '@/types/business'
 import { parseCurrencyToNumber, parseDateInputToISO, parseDateISOForInput, parseNumberToVNDCurrency } from './common'
 
 export const formatBusiness = {
@@ -21,7 +21,8 @@ export const formatBusiness = {
       idType: data.loai_dinh_danh,
       idIssuedDate: parseDateISOForInput(data.ngay_cap_dinh_danh),
       idIssuedBy: data.noi_cap_dinh_danh,
-      status: data.status
+      status: data.status,
+      certificateFilePath: data.file_gcndkdn
     }
   },
 
@@ -44,6 +45,14 @@ export const formatBusiness = {
       ngay_cap_dinh_danh: parseDateInputToISO(data.idIssuedDate),
       noi_cap_dinh_danh: data.idIssuedBy,
       status: data.status
+    }
+  },
+
+  updateBusinessCodeSent(data: IUpdateBusinessCode): any {
+    return {
+      ma_so_doanh_nghiep_moi: data.newBusinessCode,
+      ngay_thay_doi: parseDateInputToISO(data.changedDate),
+      noi_cap_moi: data.issuedBy
     }
   }
 }

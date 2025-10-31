@@ -1,7 +1,7 @@
 import { GO_SERVICE_URL } from '@/constants/env.config'
 import { deleteSession, getSession } from '@/lib/auth/session'
 
-const goService = async <T = any>(url: string, options?: RequestInit): Promise<T> => {
+const goService = async <T = any>(url: string, options?: RequestInit, isBlob?: boolean): Promise<T> => {
   const token = await getSession()
     .then((session) => session?.accessToken)
     .catch(() => null)
@@ -24,7 +24,7 @@ const goService = async <T = any>(url: string, options?: RequestInit): Promise<T
     headers: mergedHeaders
   })
 
-  const data = await res.json().catch(() => null)
+  const data = isBlob ? await res.blob() : await res.json().catch(() => null)
 
   if (!res.ok) {
     // Nếu bị 401 thì clear token và báo lỗi

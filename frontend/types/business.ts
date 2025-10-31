@@ -17,4 +17,24 @@ export interface IBusiness {
   status: boolean
   idIssuedDate?: string
   idIssuedBy?: string
+  certificateFilePath?: string
+}
+
+export interface IBusinessSearchParams {
+  abbreviation?: string
+  viName?: string
+  enName?: string
+  businessCode?: string
+  page: number
+}
+
+export interface IUpdateBusinessCode {
+  newBusinessCode: string
+  changedDate: string
+  issuedBy: string
+}
+
+export interface IUpdateBusinessSetup {
+  businessCode: string
+  id: string
 }

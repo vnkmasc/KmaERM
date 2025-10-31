@@ -2,7 +2,7 @@ import { queryString } from '@/lib/utils/common'
 import goService from '.'
 import { PAGE_SIZE } from '@/constants/common'
 import { formatBusiness } from '@/lib/utils/format-api'
-import { IBusiness } from '@/types/business'
+import { IBusiness, IUpdateBusinessCode } from '@/types/business'
 
 export default class BusinessService {
   static async searchBusinesses(params: Record<string, any>) {
@@ -43,6 +43,33 @@ export default class BusinessService {
     const res = await goService(`/doanh-nghiep/${id}`, {
       method: 'DELETE'
     })
+    return res
+  }
+
+  static async changeBusinessCode(id: string, data: IUpdateBusinessCode) {
+    const res = await goService(`/doanh-nghiep/${id}/changemsdn`, {
+      method: 'PUT',
+      body: JSON.stringify(formatBusiness.updateBusinessCodeSent(data))
+    })
+    return res
+  }
+
+  static async uploadRegistrationCertificate(id: string, file: FormData) {
+    const res = await goService(`/doanh-nghiep/${id}/uploadgcn`, {
+      method: 'POST',
+      body: file
+    })
+    return res
+  }
+
+  static async getRegistrationCertificate(id: string) {
+    const res = await goService(
+      `/doanh-nghiep/${id}/viewgcn`,
+      {
+        method: 'GET'
+      },
+      true
+    )
     return res
   }
 }
