@@ -2,7 +2,7 @@ export interface IBusiness {
   id: string
   viName: string
   enName?: string
-  abbreviation?: string
+  shortName?: string
   address: string
   businessCode: string
   firstIssuedDate: string
@@ -21,7 +21,7 @@ export interface IBusiness {
 }
 
 export interface IBusinessSearchParams {
-  abbreviation?: string
+  shortName?: string
   viName?: string
   enName?: string
   businessCode?: string

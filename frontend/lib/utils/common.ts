@@ -93,3 +93,23 @@ export const parseDateInputToISO = (dateStr: string | undefined): string | undef
 
   return date.toISOString() // ISO chuẩn
 }
+
+export const windowOpenBlankBlob = (blob: Blob) => {
+  // Tạo URL từ Blob
+  const blobUrl = URL.createObjectURL(blob)
+
+  // Mở file trong tab mới
+  const newWindow = window.open(blobUrl, '_blank')
+
+  // Revoke URL sau khi window được load để giải phóng bộ nhớ
+  // hoặc sau 1 phút nếu window không mở được
+  if (newWindow) {
+    newWindow.onload = () => {
+      URL.revokeObjectURL(blobUrl)
+    }
+  } else {
+    setTimeout(() => {
+      URL.revokeObjectURL(blobUrl)
+    }, 60000)
+  }
+}

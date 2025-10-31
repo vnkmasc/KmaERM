@@ -54,7 +54,7 @@ const Header: React.FC<Props> = (props) => {
     },
     {
       title: md && !lg ? 'QLHS' : 'Quản lý hồ sơ',
-      href: '/admin/profile-management'
+      href: '/admin/document-management'
     },
     {
       title: md && !lg ? 'QLGP' : 'Quản lý giấy phép',

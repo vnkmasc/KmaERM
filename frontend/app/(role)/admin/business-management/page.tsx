@@ -1,7 +1,7 @@
 'use client'
 
-import CustomPagination from '@/components/common/custom-pagination'
-import CustomTable from '@/components/common/custom-table'
+import CustomPagination from '@/components/role/admin/common/custom-pagination'
+import CustomTable from '@/components/role/admin/common/custom-table'
 import PageHeader from '@/components/common/page-header'
 import TableActions from '@/components/role/admin/business-management/table-actions'
 import UpdateBusinessCodeDialog from '@/components/role/admin/business-management/update-business-code-dialog'
@@ -13,6 +13,7 @@ import { getInitialSearchParamsToObject, showNotification } from '@/lib/utils/co
 import BusinessService from '@/services/go/business.service'
 import { IBusinessSearchParams, IUpdateBusinessSetup } from '@/types/business'
 import { PlusIcon } from 'lucide-react'
+import Link from 'next/link'
 import { useCallback, useState } from 'react'
 import useSWR from 'swr'
 import useSWRMutation from 'swr/mutation'
@@ -36,7 +37,7 @@ const BusinessManagementPage = () => {
 
   const querySearchBusinesses = useSWR('business' + JSON.stringify(filter), () =>
     BusinessService.searchBusinesses({
-      viet_tat: filter.abbreviation,
+      viet_tat: filter.shortName,
       ten_vi: filter.viName,
       ten_en: filter.enName,
       ma_so: filter.businessCode,
@@ -72,7 +73,7 @@ const BusinessManagementPage = () => {
       />
       <Filter
         items={[
-          { type: 'input', name: 'abbreviation', placeholder: 'Nhập tên viết tắt' },
+          { type: 'input', name: 'shortName', placeholder: 'Nhập tên viết tắt' },
           { type: 'input', name: 'viName', placeholder: 'Nhập tên tiếng việt' },
           { type: 'input', name: 'enName', placeholder: 'Nhập tên tiếng anh' },
           {
@@ -88,8 +89,13 @@ const BusinessManagementPage = () => {
       <CustomTable
         data={querySearchBusinesses.data?.data || []}
         items={[
-          { header: 'Tên doanh nghiệp (VI)', value: 'viName', className: 'min-w-[200px] font-semibold text-main' },
-          { header: 'Tên viết tắt', value: 'abbreviation' },
+          {
+            header: 'Tên doanh nghiệp (VI)',
+            value: 'viName',
+            className: 'min-w-[200px] font-semibold text-blue-500',
+            render: (item) => <Link href={`/admin/business-management/${item.id}`}>{item.viName}</Link>
+          },
+          { header: 'Tên viết tắt', value: 'shortName' },
           { header: 'Mã số doanh nghiệp', value: 'businessCode', className: 'min-w-[150px] font-semibold text-main' },
           { header: 'Người đại diện', value: 'legalRepresentative' },
           { header: 'Chức vụ', value: 'position', render: (item) => <Badge>{item.position}</Badge> },
@@ -101,12 +107,12 @@ const BusinessManagementPage = () => {
             render: (item) =>
               item.certificateFilePath ? <Badge>Đã có</Badge> : <Badge variant='destructive'>Chưa có</Badge>
           },
-          {
-            header: 'Trạng thái',
-            value: 'status',
-            render: (item) =>
-              item.status ? <Badge>Hoạt động</Badge> : <Badge variant='destructive'>Ngừng hoạt động</Badge>
-          },
+          // {
+          //   header: 'Trạng thái',
+          //   value: 'status',
+          //   render: (item) =>
+          //     item.status ? <Badge>Hoạt động</Badge> : <Badge variant='destructive'>Ngừng hoạt động</Badge>
+          // },
           {
             header: 'Hành động',
             value: 'action',

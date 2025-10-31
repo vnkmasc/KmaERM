@@ -7,7 +7,7 @@ export const formatBusiness = {
       id: data.id,
       viName: data.ten_doanh_nghiep_vi,
       enName: data.ten_doanh_nghiep_en,
-      abbreviation: data.ten_viet_tat,
+      shortName: data.ten_viet_tat,
       address: data.dia_chi,
       businessCode: data.ma_so_doanh_nghiep,
       firstIssuedDate: parseDateISOForInput(data.ngay_cap_msdn_lan_dau),
@@ -30,7 +30,7 @@ export const formatBusiness = {
     return {
       ten_doanh_nghiep_vi: data.viName,
       ten_doanh_nghiep_en: data.enName,
-      ten_viet_tat: data.abbreviation,
+      ten_viet_tat: data.shortName,
       dia_chi: data.address,
       ma_so_doanh_nghiep: data.businessCode,
       ngay_cap_msdn_lan_dau: parseDateInputToISO(data.firstIssuedDate),

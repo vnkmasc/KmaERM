@@ -7,7 +7,7 @@ import { validateBusinessCode } from '@/lib/utils/validators'
 import { Dispatch, SetStateAction } from 'react'
 
 interface Props {
-  refetchSearchList: () => void
+  refetchSearchList?: () => void
   updateBusinessSetup: IUpdateBusinessSetup | undefined
   onSetUpdateBusinessSetup: Dispatch<SetStateAction<IUpdateBusinessSetup | undefined>>
 }
@@ -20,7 +20,7 @@ const UpdateBusinessCodeDialog: React.FC<Props> = (props) => {
     {
       onSuccess: () => {
         showNotification('success', 'Thay đổi mã số doanh nghiệp thành công')
-        props.refetchSearchList()
+        props.refetchSearchList?.()
         props.onSetUpdateBusinessSetup(undefined)
       },
       onError: (error) => {

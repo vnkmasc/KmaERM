@@ -10,7 +10,7 @@ import {
   AlertDialogAction
 } from '@/components/ui/alert-dialog'
 
-import { FileIcon, TrashIcon, UserRoundPen } from 'lucide-react'
+import { EyeIcon, FileIcon, TrashIcon, UserRoundPen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { PencilIcon } from 'lucide-react'
 import { Dispatch, SetStateAction } from 'react'
@@ -19,6 +19,8 @@ import { IBusiness } from '@/types/business'
 import UploadBusinessCertificate from './upload-business-certificate'
 import useSWRMutation from 'swr/mutation'
 import BusinessService from '@/services/go/business.service'
+import { windowOpenBlankBlob, showNotification } from '@/lib/utils/common'
+import Link from 'next/link'
 
 interface Props {
   item: IBusiness
@@ -33,29 +35,20 @@ const TableActions: React.FC<Props> = (props) => {
     'business-certificate-view',
     () => BusinessService.getRegistrationCertificate(props.item.id),
     {
-      onSuccess: (data) => {
-        // Tạo URL từ Blob
-        const blobUrl = URL.createObjectURL(data)
-
-        // Mở file trong tab mới
-        const newWindow = window.open(blobUrl, '_blank')
-
-        // Revoke URL sau khi window được load để giải phóng bộ nhớ
-        // hoặc sau 1 phút nếu window không mở được
-        if (newWindow) {
-          newWindow.onload = () => {
-            URL.revokeObjectURL(blobUrl)
-          }
-        } else {
-          setTimeout(() => {
-            URL.revokeObjectURL(blobUrl)
-          }, 60000)
-        }
+      onSuccess: (data) => windowOpenBlankBlob(data),
+      onError: (error) => {
+        showNotification('error', error.message || 'Xem giấy chứng nhận thất bại')
       }
     }
   )
+
   return (
     <ButtonGroup>
+      <Link href={`/admin/business-management/${props.item.id}`}>
+        <Button size={'icon'} title='Xem chi tiết toàn bộ thông tin doanh nghiệp' className='rounded-r-none!'>
+          <EyeIcon />
+        </Button>
+      </Link>
       <Button
         variant='outline'
         size='icon'
@@ -76,9 +69,15 @@ const TableActions: React.FC<Props> = (props) => {
         variant={'outline'}
         size={'icon'}
         title='Xem giấy chứng nhận'
-        disabled={!props.item.certificateFilePath}
+        // disabled={!props.item.certificateFilePath}
         isLoading={mutateViewCertificate.isMutating}
-        onClick={() => mutateViewCertificate.trigger()}
+        onClick={() => {
+          if (props.item.certificateFilePath) {
+            mutateViewCertificate.trigger()
+          } else {
+            showNotification('warning', 'Doanh nghiệp chưa có giấy chứng nhận')
+          }
+        }}
       >
         <FileIcon />
       </Button>

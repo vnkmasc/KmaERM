@@ -16,7 +16,7 @@ interface Props {
   idDetail: string | null | undefined
   // eslint-disable-next-line no-unused-vars
   onSetIdDetail: (id: string | null | undefined) => void
-  refetchSearchList: () => void
+  refetchSearchList?: () => void
 }
 
 const UpdateBusinessDialog: React.FC<Props> = (props) => {
@@ -26,7 +26,7 @@ const UpdateBusinessDialog: React.FC<Props> = (props) => {
     {
       onSuccess: () => {
         showNotification('success', 'Cập nhật doanh nghiệp thành công')
-        props.refetchSearchList()
+        props.refetchSearchList?.()
         props.onSetIdDetail(undefined)
       },
       onError: (error) => {
@@ -41,7 +41,7 @@ const UpdateBusinessDialog: React.FC<Props> = (props) => {
     {
       onSuccess: () => {
         showNotification('success', 'Tạo doanh nghiệp thành công')
-        props.refetchSearchList()
+        props.refetchSearchList?.()
         props.onSetIdDetail(undefined)
       },
       onError: (error) => {
@@ -83,7 +83,7 @@ const UpdateBusinessDialog: React.FC<Props> = (props) => {
           validator: validateCommonName
         },
         {
-          name: 'abbreviation',
+          name: 'shortName',
           label: 'Tên viết tắt',
           type: 'input',
           placeholder: 'Nhập tên viết tắt',
@@ -148,13 +148,13 @@ const UpdateBusinessDialog: React.FC<Props> = (props) => {
           type: 'input',
           setting: { input: { type: 'date' } }
         },
-        { name: 'idIssuedBy', label: 'Nơi cấp giấy tờ', type: 'input', placeholder: 'Nhập nơi cấp giấy tờ' },
-        {
-          name: 'status',
-          label: 'Trạng thái hoạt động',
-          type: 'switch',
-          description: 'Bật nếu doanh nghiệp đang hoạt động'
-        }
+        { name: 'idIssuedBy', label: 'Nơi cấp giấy tờ', type: 'input', placeholder: 'Nhập nơi cấp giấy tờ' }
+        // {
+        //   name: 'status',
+        //   label: 'Trạng thái hoạt động',
+        //   type: 'switch',
+        //   description: 'Bật nếu doanh nghiệp đang hoạt động'
+        // }
       ]}
     />
   )

@@ -28,7 +28,7 @@ const UploadBusinessCertificate: React.FC<Props> = (props) => {
     <UploadButton onUpload={(file: FormData) => mutateUploadBusinessCertificate.trigger(file)} accept='.pdf'>
       <Button
         variant={'secondary'}
-        size='icon'
+        size={props.isTableAction ? 'icon' : 'default'}
         title='Thêm/cập nhật giấy chứng nhận đăng ký kinh doanh'
         isLoading={mutateUploadBusinessCertificate.isMutating}
         className={cn(props.isTableAction && 'rounded-none')}
