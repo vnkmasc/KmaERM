@@ -10,7 +10,7 @@ import (
 )
 
 func CORSConfig() gin.HandlerFunc {
-	originsEnv := os.Getenv("ALLOW_ORIGIN") // VD: "http://localhost:3000,http://example.com"
+	originsEnv := os.Getenv("ALLOW_ORIGIN")
 	if originsEnv == "" {
 		originsEnv = "http://localhost:3000"
 	}

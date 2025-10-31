@@ -137,21 +137,31 @@ func (h *DoanhNghiepHandler) List(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
 
-	dns, total, err := h.service.List(page, limit)
+	tenVI := c.DefaultQuery("ten_vi", "")
+	tenEN := c.DefaultQuery("ten_en", "")
+	vietTat := c.DefaultQuery("viet_tat", "")
+	maSo := c.DefaultQuery("ma_so", "")
+
+	dns, total, err := h.service.List(page, limit, tenVI, tenEN, vietTat, maSo)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	var responses []dto.DoanhNghiepResponse
 	for _, dn := range dns {
 		responses = append(responses, dto.ToDoanhNghiepResponse(&dn))
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"data":  responses,
-		"total": total,
-		"page":  page,
-		"limit": limit,
+		"data":     responses,
+		"total":    total,
+		"page":     page,
+		"limit":    limit,
+		"ten_vi":   tenVI,
+		"ten_en":   tenEN,
+		"viet_tat": vietTat,
+		"ma_so":    maSo,
 	})
 }
 
