@@ -13,7 +13,7 @@ export interface ISelectGroup {
 }
 
 export interface ICustomField {
-  type: 'input' | 'select' | 'search_select' | 'password'
+  type: 'input' | 'select' | 'search_select' | 'password' | 'switch'
   name: string
   control: Control<any>
   label?: string

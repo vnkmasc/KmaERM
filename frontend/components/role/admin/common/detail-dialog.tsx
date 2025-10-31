@@ -43,16 +43,25 @@ const DetailDialog: React.FC<Props> = (props) => {
   useEffect(() => {
     if (props.mode === 'update' && props.defaultValues && Object.keys(props.defaultValues).length > 0) {
       for (const key in props.defaultValues) {
-        form.setValue(key, props.defaultValues[key])
+        form.setValue(key, props.defaultValues[key] ?? '')
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.mode, props.defaultValues])
 
+  useEffect(() => {
+    if (props.mode === undefined) {
+      const timeoutId = setTimeout(() => {
+        form.reset()
+      }, 100)
+
+      return () => clearTimeout(timeoutId)
+    }
+  }, [props.mode, form])
+
   const handleOpenChange = (open: boolean) => {
     if (!open) {
       props.onClose()
-      form.reset()
     }
   }
 

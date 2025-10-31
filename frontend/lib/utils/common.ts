@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from 'clsx'
 import { ExternalToast, toast } from 'sonner'
 import { twMerge } from 'tailwind-merge'
+import { format, parseISO } from 'date-fns'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -52,4 +53,43 @@ export const getInitialSearchParamsToObject = (): Record<string, string> => {
   if (typeof window === 'undefined') return {}
   const searchParams = new URLSearchParams(window.location.search)
   return searchParamsToObject(searchParams)
+}
+
+export const parseDateISOForInput = (isoString: string): string => {
+  try {
+    const date = parseISO(isoString) // parse thành đối tượng Date
+    return format(date, 'yyyy-MM-dd') // format lại
+  } catch {
+    return '' // Nếu không parse được thì trả về rỗng
+  }
+}
+
+export const parseCurrencyToNumber = (value: string): number => {
+  if (!value) return 0
+
+  // Loại bỏ các ký tự không phải số
+  const digits = value.replace(/\D/g, '')
+
+  // Ép về number
+  return digits ? Number(digits) : 0
+}
+
+export const parseNumberToVNDCurrency = (value: number | undefined): string | undefined => {
+  if (value === undefined || isNaN(value)) return undefined
+
+  return (
+    value
+      .toLocaleString('vi-VN') // format theo chuẩn Việt Nam
+      .replace(/,/g, '.') + // đảm bảo dùng dấu . làm phân cách nghìn
+    ' VNĐ'
+  )
+}
+
+export const parseDateInputToISO = (dateStr: string | undefined): string | undefined => {
+  if (!dateStr) return undefined
+
+  // Tạo Date từ chuỗi, thêm giờ 0
+  const date = new Date(dateStr + 'T00:00:00')
+
+  return date.toISOString() // ISO chuẩn
 }

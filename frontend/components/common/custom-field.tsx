@@ -1,28 +1,39 @@
 import { ICustomField } from '@/types/form-field'
-import { Field, FieldDescription, FieldError, FieldLabel } from '../ui/field'
-import { Input } from '../ui/input'
+import { Field, FieldContent, FieldDescription, FieldError, FieldLabel } from '../ui/field'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '../ui/select'
 import { Controller, ControllerRenderProps } from 'react-hook-form'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import { Button } from '../ui/button'
-import { Check, ChevronsUpDown } from 'lucide-react'
+import { Check, ChevronsUpDown, CircleX } from 'lucide-react'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '../ui/command'
 import { cn } from '@/lib/utils/common'
 import PasswordInput from './password-input'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '../ui/input-group'
+import { Switch } from '../ui/switch'
 
 const CustomField: React.FC<ICustomField> = (props) => {
   const renderField = (field: ControllerRenderProps<any, string>) => {
     switch (props.type) {
       case 'input':
         return (
-          <Input
-            id={props.name}
-            placeholder={props.placeholder}
-            required={props.required}
-            disabled={props.disabled}
-            {...props.setting?.input}
-            {...field}
-          />
+          <InputGroup>
+            <InputGroupInput
+              id={props.name}
+              placeholder={props.placeholder}
+              required={props.required}
+              disabled={props.disabled}
+              {...props.setting?.input}
+              {...field}
+            />
+            <InputGroupAddon
+              align={'inline-end'}
+              hidden={props.setting && props.setting.input?.type !== 'text'}
+              className='cursor-pointer'
+              onClick={() => field.onChange('')}
+            >
+              <CircleX />
+            </InputGroupAddon>
+          </InputGroup>
         )
       case 'password':
         return <PasswordInput field={field} />
@@ -37,7 +48,7 @@ const CustomField: React.FC<ICustomField> = (props) => {
             defaultValue={field.value}
           >
             <SelectTrigger>
-              <SelectValue placeholder={props.placeholder} />
+              <SelectValue placeholder={props.placeholder} id={props.name} />
             </SelectTrigger>
             <SelectContent>
               {props.setting?.select?.groups?.length && props.setting?.select?.groups?.length > 0 ? (
@@ -111,10 +122,42 @@ const CustomField: React.FC<ICustomField> = (props) => {
             </PopoverContent>
           </Popover>
         )
+      case 'switch':
+        return (
+          <Switch
+            id={props.name}
+            checked={!!field.value}
+            onCheckedChange={(checked) => field.onChange(checked)}
+            disabled={props.disabled}
+          />
+        )
     }
   }
 
-  return (
+  return props.type === 'switch' ? (
+    <Controller
+      control={props.control}
+      name={props.name}
+      render={({ field, fieldState }) => (
+        <Field
+          data-invalid={!!fieldState.error}
+          orientation={'horizontal'}
+          className={cn(
+            'rounded-md border border-gray-300 p-3 transition-all',
+            field.value && 'border-primary bg-primary/30'
+          )}
+        >
+          <FieldContent>
+            {props.label && <FieldLabel htmlFor={props.name}>{props.label}</FieldLabel>}
+
+            {props.description && <FieldDescription>{props.description}</FieldDescription>}
+            <FieldError>{fieldState.error?.message}</FieldError>
+          </FieldContent>
+          {renderField(field)}
+        </Field>
+      )}
+    />
+  ) : (
     <Controller
       control={props.control}
       name={props.name}
@@ -123,7 +166,6 @@ const CustomField: React.FC<ICustomField> = (props) => {
           {props.label && <FieldLabel htmlFor={props.name}>{props.label}</FieldLabel>}
 
           {renderField(field)}
-
           {props.description && <FieldDescription>{props.description}</FieldDescription>}
           <FieldError>{fieldState.error?.message}</FieldError>
         </Field>

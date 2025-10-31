@@ -33,7 +33,9 @@ const goService = async <T = any>(url: string, options?: RequestInit): Promise<T
       throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.')
     }
 
-    throw new Error(data?.message || `HTTP ${res.status} ${res.statusText}`)
+    throw new Error(
+      data.error || (data.errors && JSON.stringify(data.errors)) || `HTTP ${res.status} ${res.statusText}`
+    )
   }
 
   return (data ?? undefined) as T

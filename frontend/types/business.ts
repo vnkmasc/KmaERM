@@ -10,7 +10,7 @@ export interface IBusiness {
   phoneNumber?: string
   email?: string
   website?: string
-  charterCapital?: string
+  charterCapital?: number
   legalRepresentative?: string
   position?: string
   idType?: string

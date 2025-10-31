@@ -33,7 +33,7 @@ const CustomTable: React.FC<Props> = (props) => {
                     className={`${child.className} truncate`}
                     title={typeof item[child.value] === 'string' ? item[child.value] : ''}
                   >
-                    {child.render ? child.render(item) : item[child.value]}
+                    {child.render ? child.render(item) : (item[child.value] ?? '-')}
                   </div>
                 </TableCell>
               ))}
