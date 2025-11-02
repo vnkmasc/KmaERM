@@ -4,12 +4,11 @@ import { IUpdateBusinessCode, IUpdateBusinessSetup } from '@/types/business'
 import useSWRMutation from 'swr/mutation'
 import DetailDialog from '../common/detail-dialog'
 import { validateBusinessCode } from '@/lib/utils/validators'
-import { Dispatch, SetStateAction } from 'react'
 
 interface Props {
-  refetchSearchList?: () => void
+  refetch?: () => void
   updateBusinessSetup: IUpdateBusinessSetup | undefined
-  onSetUpdateBusinessSetup: Dispatch<SetStateAction<IUpdateBusinessSetup | undefined>>
+  onClose: () => void
 }
 
 const UpdateBusinessCodeDialog: React.FC<Props> = (props) => {
@@ -20,8 +19,8 @@ const UpdateBusinessCodeDialog: React.FC<Props> = (props) => {
     {
       onSuccess: () => {
         showNotification('success', 'Thay đổi mã số doanh nghiệp thành công')
-        props.refetchSearchList?.()
-        props.onSetUpdateBusinessSetup(undefined)
+        props.refetch?.()
+        props.onClose()
       },
       onError: (error) => {
         showNotification('error', error.message || 'Thay đổi mã số doanh nghiệp thất bại')
@@ -58,7 +57,7 @@ const UpdateBusinessCodeDialog: React.FC<Props> = (props) => {
       ]}
       title='Cập nhật mã số doanh nghiệp'
       onClose={() => {
-        props.onSetUpdateBusinessSetup(undefined)
+        props.onClose()
       }}
       onSubmit={(data) => mutateChangeBusinessCode.trigger(data)}
       defaultValues={{

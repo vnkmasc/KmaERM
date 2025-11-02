@@ -14,9 +14,8 @@ import {
 interface Props {
   businessDetail: IBusiness | undefined
   idDetail: string | null | undefined
-  // eslint-disable-next-line no-unused-vars
-  onSetIdDetail: (id: string | null | undefined) => void
-  refetchSearchList?: () => void
+  onClose: () => void
+  refetch?: () => void
 }
 
 const UpdateBusinessDialog: React.FC<Props> = (props) => {
@@ -26,8 +25,8 @@ const UpdateBusinessDialog: React.FC<Props> = (props) => {
     {
       onSuccess: () => {
         showNotification('success', 'Cập nhật doanh nghiệp thành công')
-        props.refetchSearchList?.()
-        props.onSetIdDetail(undefined)
+        props.refetch?.()
+        props.onClose()
       },
       onError: (error) => {
         showNotification('error', error.message || 'Cập nhật doanh nghiệp thất bại')
@@ -41,8 +40,8 @@ const UpdateBusinessDialog: React.FC<Props> = (props) => {
     {
       onSuccess: () => {
         showNotification('success', 'Tạo doanh nghiệp thành công')
-        props.refetchSearchList?.()
-        props.onSetIdDetail(undefined)
+        props.refetch?.()
+        props.onClose()
       },
       onError: (error) => {
         showNotification('error', error.message || 'Tạo doanh nghiệp thất bại')
@@ -62,7 +61,7 @@ const UpdateBusinessDialog: React.FC<Props> = (props) => {
       mode={props.idDetail ? 'update' : props.idDetail === undefined ? undefined : 'create'}
       title='Chi tiết doanh nghiệp'
       onClose={() => {
-        props.onSetIdDetail(undefined)
+        props.onClose()
       }}
       onSubmit={(data) => handleSubmitDialog(data)}
       defaultValues={props.businessDetail || {}}

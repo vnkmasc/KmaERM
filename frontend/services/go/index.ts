@@ -24,7 +24,7 @@ const goService = async <T = any>(url: string, options?: RequestInit, isBlob?: b
     headers: mergedHeaders
   })
 
-  const data = isBlob ? await res.blob() : await res.json().catch(() => null)
+  const data = isBlob && res.ok ? await res.blob() : await res.json().catch(() => null)
 
   if (!res.ok) {
     // Nếu bị 401 thì clear token và báo lỗi

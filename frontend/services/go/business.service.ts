@@ -62,7 +62,7 @@ export default class BusinessService {
     return res
   }
 
-  static async getRegistrationCertificate(id: string) {
+  static async getRegistrationCertificate(id: string): Promise<Blob> {
     const res = await goService(
       `/doanh-nghiep/${id}/viewgcn`,
       {

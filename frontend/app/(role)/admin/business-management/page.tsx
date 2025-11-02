@@ -3,20 +3,22 @@
 import CustomPagination from '@/components/role/admin/common/custom-pagination'
 import CustomTable from '@/components/role/admin/common/custom-table'
 import PageHeader from '@/components/common/page-header'
-import TableActions from '@/components/role/admin/business-management/table-actions'
 import UpdateBusinessCodeDialog from '@/components/role/admin/business-management/update-business-code-dialog'
 import UpdateBusinessDialog from '@/components/role/admin/business-management/update-business-dialog'
 import Filter from '@/components/role/admin/common/filter'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { getInitialSearchParamsToObject, showNotification } from '@/lib/utils/common'
+import { getInitialSearchParamsToObject, showNotification, windowOpenBlankBlob } from '@/lib/utils/common'
 import BusinessService from '@/services/go/business.service'
 import { IBusinessSearchParams, IUpdateBusinessSetup } from '@/types/business'
-import { PlusIcon } from 'lucide-react'
+import { EyeIcon, FileIcon, PencilIcon, PlusIcon, TrashIcon, UserRoundPen } from 'lucide-react'
 import Link from 'next/link'
 import { useCallback, useState } from 'react'
 import useSWR from 'swr'
 import useSWRMutation from 'swr/mutation'
+import { ButtonGroup } from '@/components/ui/button-group'
+import UploadBusinessCertificate from '@/components/role/admin/business-management/upload-business-certificate'
+import DeleteAlertDialog from '@/components/role/admin/common/delete-alert-dialog'
 
 const BusinessManagementPage = () => {
   const parseSearchParamsToObject = getInitialSearchParamsToObject()
@@ -57,6 +59,17 @@ const BusinessManagementPage = () => {
       },
       onError: (error) => {
         showNotification('error', error.message || 'Xóa doanh nghiệp thất bại')
+      }
+    }
+  )
+
+  const mutateViewCertificate = useSWRMutation(
+    'business-certificate-view',
+    (_, { arg }: { arg: string }) => BusinessService.getRegistrationCertificate(arg),
+    {
+      onSuccess: (data) => windowOpenBlankBlob(data),
+      onError: (error) => {
+        showNotification('error', error.message || 'Xem giấy chứng nhận thất bại')
       }
     }
   )
@@ -117,12 +130,58 @@ const BusinessManagementPage = () => {
             header: 'Hành động',
             value: 'action',
             render: (item) => (
-              <TableActions
-                item={item}
-                onDelete={mutateDeleteBusiness.trigger}
-                onSetIdDetail={setIdDetail}
-                onSetUpdateBusinessSetup={setUpdateBusinessSetup}
-              />
+              <ButtonGroup>
+                <Link href={`/admin/business-management/${item.id}`}>
+                  <Button size={'icon'} title='Xem chi tiết toàn bộ thông tin doanh nghiệp' className='rounded-r-none!'>
+                    <EyeIcon />
+                  </Button>
+                </Link>
+                <Button
+                  variant='outline'
+                  size='icon'
+                  onClick={() => setIdDetail(item.id)}
+                  title='Chỉnh sửa thông tin cơ bản'
+                >
+                  <PencilIcon />
+                </Button>
+                <Button
+                  size='icon'
+                  title='Chỉnh sửa mã số doanh nghiệp'
+                  onClick={() => setUpdateBusinessSetup({ businessCode: item.businessCode, id: item.id })}
+                >
+                  <UserRoundPen />
+                </Button>
+                <UploadBusinessCertificate isTableAction businessId={item.id} refetch={querySearchBusinesses.mutate} />
+                <Button
+                  variant={'outline'}
+                  size={'icon'}
+                  title='Xem giấy chứng nhận'
+                  // disabled={!props.item.certificateFilePath}
+                  isLoading={mutateViewCertificate.isMutating}
+                  onClick={() => {
+                    if (item.certificateFilePath) {
+                      mutateViewCertificate.trigger(item.id)
+                    } else {
+                      showNotification('warning', 'Doanh nghiệp chưa có giấy chứng nhận')
+                    }
+                  }}
+                >
+                  <FileIcon />
+                </Button>
+                <DeleteAlertDialog
+                  description={
+                    <span>
+                      Doanh nghiệp <b>{item.viName}</b> sẽ bị xóa khỏi hệ thống, thao tác này không thể hoàn tác.
+                    </span>
+                  }
+                  onDelete={() => mutateDeleteBusiness.trigger(item.id)}
+                  title='Xóa doanh nghiệp'
+                >
+                  <Button variant='destructive' size='icon' title='Xóa doanh nghiệp'>
+                    <TrashIcon />
+                  </Button>
+                </DeleteAlertDialog>
+              </ButtonGroup>
             )
           }
         ]}
@@ -134,14 +193,14 @@ const BusinessManagementPage = () => {
       />
       <UpdateBusinessDialog
         idDetail={idDetail}
-        onSetIdDetail={setIdDetail}
-        refetchSearchList={querySearchBusinesses.mutate}
+        onClose={() => setIdDetail(undefined)}
+        refetch={querySearchBusinesses.mutate}
         businessDetail={queryBusinessDetail.data}
       />
       <UpdateBusinessCodeDialog
-        refetchSearchList={querySearchBusinesses.mutate}
+        refetch={querySearchBusinesses.mutate}
         updateBusinessSetup={updateBusinessSetup}
-        onSetUpdateBusinessSetup={setUpdateBusinessSetup}
+        onClose={() => setUpdateBusinessSetup(undefined)}
       />
     </div>
   )

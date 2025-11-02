@@ -4,18 +4,22 @@ import PageHeader from '@/components/common/page-header'
 import DescriptionView from '@/components/common/description-view'
 import {
   ALargeSmall,
+  AlertCircle,
   Bold,
   Calendar,
   CaseSensitive,
   Code,
   DollarSign,
+  DownloadIcon,
   Edit,
+  FileIcon,
   Globe,
   Mail,
   Map,
   MapPinHouse,
   Phone,
   RefreshCcw,
+  TrashIcon,
   Type,
   UserRoundPen,
   UserStar
@@ -25,17 +29,81 @@ import BusinessService from '@/services/go/business.service'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import UploadBusinessCertificate from './upload-business-certificate'
+import useSWRMutation from 'swr/mutation'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { useEffect, useState } from 'react'
+import UpdateBusinessDialog from './update-business-dialog'
+import UpdateBusinessCodeDialog from './update-business-code-dialog'
+import { showNotification } from '@/lib/utils/common'
+import { useRouter } from 'next/navigation'
+import DeleteAlertDialog from '../common/delete-alert-dialog'
 
 interface Props {
   id: string
 }
 
 const BusinessDetailView: React.FC<Props> = (props) => {
-  const queryBusinessDetail = useSWR(`business-${props.id}`, () => BusinessService.getBusinessById(props.id as string))
+  const queryBusinessDetail = useSWR(`business-${props.id}`, () => BusinessService.getBusinessById(props.id))
+  const [openUpdateBusinessDialog, setOpenUpdateBusinessDialog] = useState(false)
+  const [openUpdateBusinessCodeDialog, setOpenUpdateBusinessCodeDialog] = useState(false)
+  const router = useRouter()
+
+  const mutateViewCertificate = useSWRMutation(
+    'business-certificate-view',
+    async (_, { arg }: { arg: 'download' | 'view' | 'new-tab' }) => {
+      const res = await BusinessService.getRegistrationCertificate(props.id)
+      const iframUrl = URL.createObjectURL(res)
+
+      setTimeout(() => {
+        URL.revokeObjectURL(iframUrl)
+      }, 5000)
+
+      switch (arg) {
+        case 'download':
+          const link = document.createElement('a')
+          link.href = iframUrl
+          link.download = 'giay-chung-nhan-dang-ky-kinh-doanh.pdf'
+          link.click()
+          break
+        case 'view':
+          return iframUrl
+        case 'new-tab':
+          window.open(iframUrl, '_blank')
+          break
+        default:
+          return iframUrl
+      }
+
+      return iframUrl
+    }
+  )
+
+  const mutateDeleteBusiness = useSWRMutation('business-delete', () => BusinessService.deleteBusiness(props.id), {
+    onSuccess: () => {
+      router.push('/admin/business-management')
+      showNotification('success', 'Xóa doanh nghiệp thành công')
+    },
+    onError: (error) => {
+      showNotification('error', error.message || 'Xóa doanh nghiệp thất bại')
+    }
+  })
 
   const refetchAll = () => {
     queryBusinessDetail.mutate()
+    mutateViewCertificate.trigger('view')
   }
+
+  useEffect(() => {
+    mutateViewCertificate.trigger('view')
+
+    return () => {
+      if (mutateViewCertificate.data) {
+        URL.revokeObjectURL(mutateViewCertificate.data)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className='flex flex-col gap-4'>
@@ -47,19 +115,35 @@ const BusinessDetailView: React.FC<Props> = (props) => {
             <RefreshCcw />
             <span className='hidden md:block'>Tải lại</span>
           </Button>,
-          <UploadBusinessCertificate key={'upload-business-certificate'} businessId={props.id} />
+          <DeleteAlertDialog
+            key='delete'
+            description={
+              <span>
+                Doanh nghiệp <b>{queryBusinessDetail.data?.viName}</b> sẽ bị xóa khỏi hệ thống, thao tác này không thể
+                hoàn tác.
+              </span>
+            }
+            onDelete={mutateDeleteBusiness.trigger}
+            title='Xóa doanh nghiệp'
+          >
+            <Button variant={'destructive'}>
+              <TrashIcon />
+              <span className='hidden md:block'>Xóa DN</span>
+            </Button>
+          </DeleteAlertDialog>
         ]}
       />
       <DescriptionView
         loading={queryBusinessDetail.isLoading}
+        errorText={queryBusinessDetail.error?.message}
         actions={[
-          <Button variant='outline' key='update'>
+          <Button variant='outline' key='update' onClick={() => setOpenUpdateBusinessDialog(true)}>
             <Edit /> <span className='hidden md:block'>Chỉnh sửa</span>
           </Button>,
           <Button
             key='change-business-code'
             title='Chỉnh sửa mã số doanh nghiệp'
-            // onClick={() => props.onSetUpdateBusinessSetup({ businessCode: props.item.businessCode, id: props.item.id })}
+            onClick={() => setOpenUpdateBusinessCodeDialog(true)}
           >
             <UserRoundPen /> <span className='hidden md:block'>Chỉnh sửa MSDN</span>
           </Button>
@@ -91,6 +175,60 @@ const BusinessDetailView: React.FC<Props> = (props) => {
           { icon: <Phone />, title: 'Số điện thoại', value: queryBusinessDetail.data?.phoneNumber }
         ]}
       />
+
+      {mutateViewCertificate.isMutating ? (
+        <Skeleton className='h-[300px] w-full md:h-[500px]' />
+      ) : mutateViewCertificate.error ? (
+        <Alert variant='destructive' className='mx-auto max-w-[700px]'>
+          <AlertCircle />
+          <AlertTitle>Đã có lỗi khi tải giấy chứng nhận</AlertTitle>
+          <AlertDescription>{mutateViewCertificate.error.message}</AlertDescription>
+        </Alert>
+      ) : (
+        <>
+          <PageHeader
+            title='Giấy chứng nhận đăng ký kinh doanh'
+            actions={[
+              <UploadBusinessCertificate
+                key={'upload-business-certificate'}
+                businessId={props.id}
+                refetch={() => mutateViewCertificate.trigger('view')}
+              />,
+              <Button key='download' onClick={() => mutateViewCertificate.trigger('download')}>
+                <DownloadIcon /> <span className='hidden md:block'>Tải xuống</span>
+              </Button>,
+              <Button
+                key='view-in-new-tab'
+                variant={'outline'}
+                onClick={() => mutateViewCertificate.trigger('new-tab')}
+              >
+                <FileIcon /> <span className='hidden md:block'>Xem tệp</span>
+              </Button>
+            ]}
+          />
+          <iframe src={mutateViewCertificate.data} className='h-[500px] w-full md:h-[700px]' />
+        </>
+      )}
+
+      {queryBusinessDetail.data && (
+        <>
+          <UpdateBusinessDialog
+            idDetail={openUpdateBusinessDialog ? props.id : undefined}
+            onClose={() => setOpenUpdateBusinessDialog(false)}
+            businessDetail={queryBusinessDetail.data}
+            refetch={queryBusinessDetail.mutate}
+          />
+          <UpdateBusinessCodeDialog
+            refetch={queryBusinessDetail.mutate}
+            updateBusinessSetup={
+              openUpdateBusinessCodeDialog
+                ? { businessCode: queryBusinessDetail.data?.businessCode, id: props.id }
+                : undefined
+            }
+            onClose={() => setOpenUpdateBusinessCodeDialog(false)}
+          />
+        </>
+      )}
     </div>
   )
 }
