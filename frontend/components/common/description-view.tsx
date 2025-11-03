@@ -1,5 +1,8 @@
+import { AlertCircle } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
 import { Skeleton } from '../ui/skeleton'
+import { cn } from '@/lib/utils/common'
 
 interface ViewItemProps {
   icon: React.ReactNode
@@ -13,6 +16,7 @@ interface Props {
   description?: string
   actions?: React.ReactNode[]
   loading?: boolean
+  errorText?: string
 }
 
 const ViewItem: React.FC<ViewItemProps> = (props) => {
@@ -30,28 +34,30 @@ const ViewItem: React.FC<ViewItemProps> = (props) => {
 }
 
 const DecriptionView: React.FC<Props> = (props) => {
-  return (
+  return props.errorText ? (
+    <Alert variant={'destructive'} className='mx-auto max-w-[700px]'>
+      <AlertCircle />
+      <AlertTitle>Đã có lỗi khi tải {props.title}</AlertTitle>
+      <AlertDescription>{props.errorText}</AlertDescription>
+    </Alert>
+  ) : (
     <Card>
       <CardHeader>
-        <CardTitle>{props.title}</CardTitle>
-        <CardDescription>{props.description}</CardDescription>
+        <CardTitle className={cn(!props.description && 'row-span-2 self-center')}>{props.title}</CardTitle>
+        {props.description && <CardDescription>{props.description}</CardDescription>}
         <CardAction className='flex gap-2'>{props.actions?.map((action) => action)}</CardAction>
       </CardHeader>
       <CardContent className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
         {props.loading ? (
-          <div>
-            <Skeleton className='mb-2 h-4 w-1/2' />
-            <Skeleton className='h-4 w-full' />
-            <Skeleton className='mb-2 h-4 w-1/2' />
-            <Skeleton className='h-4 w-full' />
-            <Skeleton className='mb-2 h-4 w-1/2' />
-            <Skeleton className='h-4 w-full' />
-            <Skeleton className='mb-2 h-4 w-1/2' />
-            <Skeleton className='h-4 w-full' />
-            <Skeleton className='mb-2 h-4 w-1/2' />
-            <Skeleton className='h-4 w-full' />
-            <Skeleton className='mb-2 h-4 w-1/2' />
-            <Skeleton className='h-4 w-full' />
+          <div className='col-span-full space-y-2'>
+            <Skeleton className='h-6 w-full' />
+            <Skeleton className='h-6 w-3/4' />
+            <Skeleton className='h-6 w-full' />
+            <Skeleton className='h-6 w-3/4' />
+            <Skeleton className='h-6 w-full' />
+            <Skeleton className='h-6 w-3/4' />
+            <Skeleton className='h-6 w-full' />
+            <Skeleton className='h-6 w-3/4' />
           </div>
         ) : (
           props.items.map((item, index) => <ViewItem key={index} {...item} />)

@@ -55,12 +55,51 @@ export const getInitialSearchParamsToObject = (): Record<string, string> => {
   return searchParamsToObject(searchParams)
 }
 
-export const parseDateISOForInput = (isoString: string): string => {
+export const parseDateISOForInput = (isoString: string, includeTime: boolean = false): string => {
   try {
-    const date = parseISO(isoString) // parse thành đối tượng Date
-    return format(date, 'yyyy-MM-dd') // format lại
+    const date = parseISO(isoString)
+
+    // format theo chế độ
+    return includeTime
+      ? format(date, "yyyy-MM-dd'T'HH:mm") // dành cho input[type="datetime-local"]
+      : format(date, 'yyyy-MM-dd') // dành cho input[type="date"]
   } catch {
-    return '' // Nếu không parse được thì trả về rỗng
+    return ''
+  }
+}
+
+export const parseDateInputToISO = (dateStr: string | undefined, includeTime: boolean = false): string | undefined => {
+  if (!dateStr) return undefined
+
+  if (includeTime) {
+    // Khi có thời gian, parse như bình thường và convert sang UTC
+    const fullStr = dateStr.includes('T') ? dateStr : `${dateStr}T00:00`
+    const date = new Date(fullStr)
+    const iso = date.toISOString()
+    return iso.replace(/:\d{2}\.\d{3}Z$/, ':00Z')
+  } else {
+    // Khi chỉ có ngày, tạo ISO string trực tiếp ở UTC 00:00:00 để tránh timezone shift
+    // Ví dụ: "2025-11-08" -> "2025-11-08T00:00:00Z"
+    return `${dateStr}T00:00:00Z`
+  }
+}
+
+export const parseDateToISO = (date: Date | undefined, includeTime: boolean = false): string | undefined => {
+  if (!date) return undefined
+
+  // Lấy local date/time components để tránh timezone issues
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+
+  if (includeTime) {
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    const dateStr = `${year}-${month}-${day}T${hours}:${minutes}`
+    return parseDateInputToISO(dateStr, true)
+  } else {
+    const dateStr = `${year}-${month}-${day}`
+    return parseDateInputToISO(dateStr, false)
   }
 }
 
@@ -83,15 +122,6 @@ export const parseNumberToVNDCurrency = (value: number | undefined): string | un
       .replace(/,/g, '.') + // đảm bảo dùng dấu . làm phân cách nghìn
     ' VNĐ'
   )
-}
-
-export const parseDateInputToISO = (dateStr: string | undefined): string | undefined => {
-  if (!dateStr) return undefined
-
-  // Tạo Date từ chuỗi, thêm giờ 0
-  const date = new Date(dateStr + 'T00:00:00')
-
-  return date.toISOString() // ISO chuẩn
 }
 
 export const windowOpenBlankBlob = (blob: Blob) => {

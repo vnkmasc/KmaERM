@@ -65,7 +65,7 @@ const Filter: React.FC<Props> = (props) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Tìm kiếm</CardTitle>
+        <CardTitle className='row-span-2 self-center'>Tìm kiếm</CardTitle>
         <CardAction className='space-x-2'>
           <Button variant={'secondary'} onClick={props.refreshQuery}>
             <RefreshCcw />

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 interface Props {
   isTableAction?: boolean
   businessId: string
+  refetch: () => void
 }
 
 const UploadBusinessCertificate: React.FC<Props> = (props) => {
@@ -17,6 +18,7 @@ const UploadBusinessCertificate: React.FC<Props> = (props) => {
     {
       onSuccess: () => {
         showNotification('success', 'Tải giấy chứng nhận đăng ký kinh doanh thành công')
+        props.refetch()
       },
       onError: (error) => {
         showNotification('error', error.message || 'Tải giấy chứng nhận đăng ký kinh doanh thất bại')

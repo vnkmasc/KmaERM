@@ -1,5 +1,5 @@
 import { IBusiness, IUpdateBusinessCode } from '@/types/business'
-import { parseCurrencyToNumber, parseDateInputToISO, parseDateISOForInput, parseNumberToVNDCurrency } from './common'
+import { parseCurrencyToNumber, parseDateInputToISO, parseNumberToVNDCurrency } from './common'
 
 export const formatBusiness = {
   dataGetted(data: any): IBusiness {
@@ -10,7 +10,7 @@ export const formatBusiness = {
       shortName: data.ten_viet_tat,
       address: data.dia_chi,
       businessCode: data.ma_so_doanh_nghiep,
-      firstIssuedDate: parseDateISOForInput(data.ngay_cap_msdn_lan_dau),
+      firstIssuedDate: data.ngay_cap_msdn_lan_dau,
       issuedBy: data.noi_cap_msdn,
       phoneNumber: data.sdt,
       email: data.email,
@@ -19,10 +19,12 @@ export const formatBusiness = {
       legalRepresentative: data.nguoi_dai_dien,
       position: data.chuc_vu,
       idType: data.loai_dinh_danh,
-      idIssuedDate: parseDateISOForInput(data.ngay_cap_dinh_danh),
+      idIssuedDate: data.ngay_cap_dinh_danh,
       idIssuedBy: data.noi_cap_dinh_danh,
       status: data.status,
-      certificateFilePath: data.file_gcndkdn
+      certificateFilePath: data.file_gcndkdn,
+      businessCodeChangeCount: data.so_lan_thay_doi_msdn,
+      businessCodeChangeDate: data.ngay_thay_doi_msdn
     }
   },
 
@@ -33,7 +35,7 @@ export const formatBusiness = {
       ten_viet_tat: data.shortName,
       dia_chi: data.address,
       ma_so_doanh_nghiep: data.businessCode,
-      ngay_cap_msdn_lan_dau: parseDateInputToISO(data.firstIssuedDate),
+      ngay_cap_msdn_lan_dau: data.firstIssuedDate,
       noi_cap_msdn: data.issuedBy,
       sdt: data.phoneNumber,
       email: data.email ? data.email : undefined,
@@ -42,7 +44,7 @@ export const formatBusiness = {
       nguoi_dai_dien: data.legalRepresentative,
       chuc_vu: data.position,
       loai_dinh_danh: data.idType,
-      ngay_cap_dinh_danh: parseDateInputToISO(data.idIssuedDate),
+      ngay_cap_dinh_danh: data.idIssuedDate,
       noi_cap_dinh_danh: data.idIssuedBy,
       status: data.status
     }
