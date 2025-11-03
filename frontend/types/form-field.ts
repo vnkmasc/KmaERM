@@ -13,7 +13,7 @@ export interface ISelectGroup {
 }
 
 export interface ICustomField {
-  type: 'input' | 'select' | 'search_select' | 'password' | 'switch'
+  type: 'input' | 'select' | 'search_select' | 'password' | 'switch' | 'date_picker'
   name: string
   control: Control<any>
   label?: string
@@ -25,6 +25,10 @@ export interface ICustomField {
     input?: InputHTMLAttributes<HTMLInputElement>
     select?: {
       groups: ISelectGroup[]
+    }
+    date?: {
+      includeTime: boolean
+      mode?: 'single' | 'range' | 'multiple'
     }
   }
 }

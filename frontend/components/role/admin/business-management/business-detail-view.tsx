@@ -19,6 +19,7 @@ import {
   MapPinHouse,
   Phone,
   RefreshCcw,
+  RepeatIcon,
   TrashIcon,
   Type,
   UserRoundPen,
@@ -35,9 +36,10 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { useEffect, useState } from 'react'
 import UpdateBusinessDialog from './update-business-dialog'
 import UpdateBusinessCodeDialog from './update-business-code-dialog'
-import { showNotification } from '@/lib/utils/common'
+import { parseDateISOForInput, showNotification } from '@/lib/utils/common'
 import { useRouter } from 'next/navigation'
 import DeleteAlertDialog from '../common/delete-alert-dialog'
+import { Separator } from '@/components/ui/separator'
 
 interface Props {
   id: string
@@ -106,7 +108,7 @@ const BusinessDetailView: React.FC<Props> = (props) => {
   }, [])
 
   return (
-    <div className='flex flex-col gap-4'>
+    <div className='space-y-2 md:space-y-4'>
       <PageHeader
         title='Chi tiết thông tin doanh nghiệp'
         hasBackButton
@@ -156,7 +158,19 @@ const BusinessDetailView: React.FC<Props> = (props) => {
           { icon: <Bold />, title: 'Tên viết tắt', value: queryBusinessDetail.data?.shortName },
           { icon: <MapPinHouse />, title: 'Địa chỉ', value: queryBusinessDetail.data?.address },
           { icon: <Map />, title: 'Nơi cấp MSDN', value: queryBusinessDetail.data?.issuedBy },
-          { icon: <Calendar />, title: 'Ngày cấp lần đầu MSDN', value: queryBusinessDetail.data?.firstIssuedDate },
+          {
+            icon: <Calendar />,
+            title: 'Ngày cấp lần đầu MSDN',
+            value: parseDateISOForInput(queryBusinessDetail.data?.firstIssuedDate || '')
+          },
+          {
+            icon: <RepeatIcon />,
+            title: 'Số lần thay đổi MSDN',
+            value:
+              queryBusinessDetail.data?.businessCodeChangeCount +
+              ' lần với ngày gần nhất ' +
+              parseDateISOForInput(queryBusinessDetail.data?.businessCodeChangeDate || '')
+          },
           {
             icon: <UserStar />,
             title: 'Người đại diện pháp luật',
@@ -167,7 +181,11 @@ const BusinessDetailView: React.FC<Props> = (props) => {
             )
           },
           { icon: <Type />, title: 'Loại giấy tờ định danh', value: queryBusinessDetail.data?.idType },
-          { icon: <Calendar />, title: 'Ngày cấp định danh', value: queryBusinessDetail.data?.idIssuedDate },
+          {
+            icon: <Calendar />,
+            title: 'Ngày cấp định danh',
+            value: parseDateISOForInput(queryBusinessDetail.data?.idIssuedDate || '')
+          },
           { icon: <Map />, title: 'Nơi cấp định danh', value: queryBusinessDetail.data?.issuedBy },
           { icon: <DollarSign />, title: 'Vốn điều lệ', value: queryBusinessDetail.data?.charterCapital + ' VND' },
           { icon: <Mail />, title: 'Email', value: queryBusinessDetail.data?.email },
@@ -175,6 +193,8 @@ const BusinessDetailView: React.FC<Props> = (props) => {
           { icon: <Phone />, title: 'Số điện thoại', value: queryBusinessDetail.data?.phoneNumber }
         ]}
       />
+
+      <Separator className='my-2 md:my-4' />
 
       {mutateViewCertificate.isMutating ? (
         <Skeleton className='h-[300px] w-full md:h-[500px]' />
@@ -201,6 +221,7 @@ const BusinessDetailView: React.FC<Props> = (props) => {
                 key='view-in-new-tab'
                 variant={'outline'}
                 onClick={() => mutateViewCertificate.trigger('new-tab')}
+                title='Xem giấy chứng nhận trong tab mới'
               >
                 <FileIcon /> <span className='hidden md:block'>Xem tệp</span>
               </Button>

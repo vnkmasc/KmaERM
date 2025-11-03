@@ -2,6 +2,7 @@ import { AlertCircle } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
 import { Skeleton } from '../ui/skeleton'
+import { cn } from '@/lib/utils/common'
 
 interface ViewItemProps {
   icon: React.ReactNode
@@ -42,8 +43,8 @@ const DecriptionView: React.FC<Props> = (props) => {
   ) : (
     <Card>
       <CardHeader>
-        <CardTitle>{props.title}</CardTitle>
-        <CardDescription>{props.description}</CardDescription>
+        <CardTitle className={cn(!props.description && 'row-span-2 self-center')}>{props.title}</CardTitle>
+        {props.description && <CardDescription>{props.description}</CardDescription>}
         <CardAction className='flex gap-2'>{props.actions?.map((action) => action)}</CardAction>
       </CardHeader>
       <CardContent className='grid grid-cols-1 gap-4 sm:grid-cols-2'>

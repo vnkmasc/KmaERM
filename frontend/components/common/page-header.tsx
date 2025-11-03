@@ -8,7 +8,7 @@ interface Props {
 
 const PageHeader: React.FC<Props> = (props) => {
   return (
-    <div className='mb-3 flex items-center justify-between'>
+    <div className='flex items-center justify-between'>
       <h2 className='flex items-center gap-2'>
         {props.hasBackButton && <Back />}
         {props.title}

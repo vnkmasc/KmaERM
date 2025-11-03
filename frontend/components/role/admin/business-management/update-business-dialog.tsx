@@ -102,12 +102,11 @@ const UpdateBusinessDialog: React.FC<Props> = (props) => {
         {
           name: 'firstIssuedDate',
           label: 'Ngày cấp lần đầu MSDN',
-          type: 'input',
+          type: 'date_picker',
           required: true,
           placeholder: 'Nhập ngày cấp lần đầu MSDN',
-          setting: {
-            input: { type: 'date' }
-          }
+          disabled: props.idDetail ? true : false,
+          description: props.idDetail ? 'Không thể thay đổi sau khi tạo doanh nghiệp' : undefined
         },
         { name: 'issuedBy', label: 'Nơi cấp MSDN', type: 'input', required: true, placeholder: 'Nhập nơi cấp MSDN' },
         {
@@ -115,7 +114,8 @@ const UpdateBusinessDialog: React.FC<Props> = (props) => {
           label: 'Số điện thoại',
           type: 'input',
           validator: validateVNIPhoneNumber,
-          placeholder: 'Nhập số điện thoại'
+          placeholder: 'Nhập số điện thoại',
+          description: 'Số điện thoại vùng Việt Nam'
         },
         {
           name: 'email',
@@ -144,8 +144,7 @@ const UpdateBusinessDialog: React.FC<Props> = (props) => {
         {
           name: 'idIssuedDate',
           label: 'Ngày cấp giấy tờ',
-          type: 'input',
-          setting: { input: { type: 'date' } }
+          type: 'date_picker'
         },
         { name: 'idIssuedBy', label: 'Nơi cấp giấy tờ', type: 'input', placeholder: 'Nhập nơi cấp giấy tờ' }
         // {

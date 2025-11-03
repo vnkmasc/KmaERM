@@ -75,7 +75,7 @@ const BusinessManagementPage = () => {
   )
 
   return (
-    <div>
+    <div className='space-y-2 md:space-y-4'>
       <PageHeader
         title='Quản lý doanh nghiệp'
         actions={[

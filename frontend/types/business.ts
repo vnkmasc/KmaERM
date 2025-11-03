@@ -18,6 +18,8 @@ export interface IBusiness {
   idIssuedDate?: string
   idIssuedBy?: string
   certificateFilePath?: string
+  businessCodeChangeCount?: number
+  businessCodeChangeDate?: string
 }
 
 export interface IBusinessSearchParams {
