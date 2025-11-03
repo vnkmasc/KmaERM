@@ -26,6 +26,7 @@ var (
 
 type HoSoService interface {
 	CreateHoSo(ctx context.Context, req *dto.CreateHoSoRequest) (*models.HoSo, error)
+	ListHoSo(ctx context.Context, doanhNghiepID uuid.UUID, params *dto.HoSoSearchParams, page int, pageSize int) (*dto.HoSoListResponse, error)
 	GetHoSoDetails(ctx context.Context, hoSoID uuid.UUID) (*models.HoSo, error)
 	UploadTaiLieu(ctx context.Context, req *dto.UploadTaiLieuRequest, tempFilePath string, fileName string) (*models.TaiLieu, error)
 	DeleteTaiLieu(ctx context.Context, taiLieuID uuid.UUID) error
@@ -179,6 +180,25 @@ func (s *hoSoService) GetHoSoDetails(ctx context.Context, hoSoID uuid.UUID) (*mo
 	}
 
 	return hoSo, nil
+}
+
+func (s *hoSoService) ListHoSo(ctx context.Context, doanhNghiepID uuid.UUID, params *dto.HoSoSearchParams, page int, pageSize int) (*dto.HoSoListResponse, error) {
+
+	// 1. Gọi Repository (Không đổi)
+	hoSos, total, err := s.hosoRepo.ListHoSo(ctx, s.db, doanhNghiepID, params, page, pageSize)
+	if err != nil {
+		return nil, fmt.Errorf("lỗi khi lấy danh sách hồ sơ: %w", err)
+	}
+
+	// 2. Tạo DTO Response (đã làm phẳng)
+	response := &dto.HoSoListResponse{
+		Data:     hoSos,
+		Page:     page,
+		PageSize: pageSize,
+		Total:    total,
+	}
+
+	return response, nil
 }
 
 func (s *hoSoService) UploadTaiLieu(ctx context.Context, req *dto.UploadTaiLieuRequest, tempFilePath string, fileName string) (*models.TaiLieu, error) {

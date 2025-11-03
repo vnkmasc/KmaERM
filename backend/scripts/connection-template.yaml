@@ -1,0 +1,47 @@
+name: "fabric-network"
+version: 1.0.0
+
+client:
+  organization: Org1
+
+organizations:
+  Org1:
+    mspid: Org1MSP
+    peers:
+      - peer0.org1.example.com
+  Org2:
+    mspid: Org2MSP
+    peers:
+      - peer0.org2.example.com
+
+orderers:
+  orderer.example.com:
+    url: grpcs://${FABRIC_HOST}:${ORDERER_PORT}
+    grpcOptions:
+      ssl-target-name-override: orderer.example.com
+    tlsCACerts:
+      path: config/tls/orderer-ca.crt
+
+peers:
+  peer0.org1.example.com:
+    url: grpcs://${FABRIC_HOST}:${PEER0_ORG1_PORT}
+    grpcOptions:
+      ssl-target-name-override: peer0.org1.example.com
+    tlsCACerts:
+      path: config/tls/org1-peer0-ca.crt
+
+  peer0.org2.example.com:
+    url: grpcs://${FABRIC_HOST}:${PEER0_ORG2_PORT}
+    grpcOptions:
+      ssl-target-name-override: peer0.org2.example.com
+    tlsCACerts:
+      path: config/tls/org2-peer0-ca.crt
+
+certificateAuthorities:
+  ca.org1.example.com:
+    url: https://${FABRIC_HOST}:${CA_PORT}
+    caName: ca-org1
+    tlsCACerts:
+      path: config/tls/ca-org1-cert.pem
+    httpOptions:
+      verify: false

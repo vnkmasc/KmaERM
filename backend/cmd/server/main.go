@@ -11,6 +11,7 @@ import (
 	"github.com/vnkmasc/KmaERM/backend/internal/middleware"
 	"github.com/vnkmasc/KmaERM/backend/internal/repository"
 	"github.com/vnkmasc/KmaERM/backend/internal/service"
+	"github.com/vnkmasc/KmaERM/backend/pkg/blockchain"
 	"github.com/vnkmasc/KmaERM/backend/pkg/database"
 )
 
@@ -28,8 +29,17 @@ func main() {
 		log.Fatal("LỖI: Không thể lấy *sql.DB gốc từ GORM:", err)
 	}
 	defer sqlDB.Close()
-
 	log.Println("Kết nối CSDL và connection pool thành công.")
+
+	fabricCfg := blockchain.NewFabricConfigFromEnv()
+	fabricClient, err := blockchain.NewFabricClient(fabricCfg)
+	if err != nil {
+		log.Println("⚠️ Không thể kết nối Fabric, chạy chế độ không blockchain:", err)
+		fabricClient = nil
+	} else {
+		log.Println("✅ Kết nối Fabric thành công!")
+	}
+	_ = fabricClient
 
 	mode := os.Getenv("GIN_MODE")
 	if mode == "" {

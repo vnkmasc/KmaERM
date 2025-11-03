@@ -15,6 +15,29 @@ type CreateHoSoRequest struct {
 	NgayHenTra    time.Time `json:"ngay_hen_tra" binding:"required"`
 }
 
+type HoSoSearchParams struct {
+	MaHoSo        string `form:"ma_ho_so"`
+	LoaiThuTuc    string `form:"loai_thu_tuc"`
+	TrangThaiHoSo string `form:"trang_thai_ho_so"`
+
+	NgayDangKyFrom time.Time `form:"ngay_dang_ky_from" time_format:"2006-01-02T15:04:05Z"`
+	NgayDangKyTo   time.Time `form:"ngay_dang_ky_to" time_format:"2006-01-02T15:04:05Z"`
+
+	NgayTiepNhanFrom time.Time `form:"ngay_tiep_nhan_from" time_format:"2006-01-02T15:04:05Z"`
+	NgayTiepNhanTo   time.Time `form:"ngay_tiep_nhan_to" time_format:"2006-01-02T15:04:05Z"`
+
+	NgayHenTraFrom time.Time `form:"ngay_hen_tra_from" time_format:"2006-01-02T15:04:05Z"`
+	NgayHenTraTo   time.Time `form:"ngay_hen_tra_to" time_format:"2006-01-02T15:04:05Z"`
+}
+
+type HoSoListResponse struct {
+	Data []models.HoSo `json:"data"`
+
+	Page     int   `json:"page"`
+	PageSize int   `json:"page_size"`
+	Total    int64 `json:"total"` // Đổi tên từ total_records -> total
+}
+
 type HoSoDetailsResponse struct {
 	ID                 uuid.UUID `json:"id"`
 	DoanhNghiepID      uuid.UUID `json:"doanh_nghiep_id"`

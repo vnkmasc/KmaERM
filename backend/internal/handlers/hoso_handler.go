@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -31,6 +32,8 @@ func (h *HoSoHandler) RegisterRoutes(router *gin.RouterGroup) {
 		hoSoGroup.POST("", h.CreateHoSo)
 		hoSoGroup.GET("/:id", h.GetHoSoDetails)
 		hoSoGroup.PUT("/:id", h.UpdateHoSo)
+		hoSoGroup.GET("", h.ListHoSo)
+
 	}
 	taiLieuGroup := router.Group("/tai-lieu")
 	{
@@ -107,6 +110,46 @@ func (h *HoSoHandler) GetHoSoDetails(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+func (h *HoSoHandler) ListHoSo(c *gin.Context) {
+	// 1. Bind các query param TÙY CHỌN (search, date range)
+	var params dto.HoSoSearchParams
+	if err := c.ShouldBindQuery(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Query params không hợp lệ", "details": err.Error()})
+		return
+	}
+
+	// 2. Lấy query param BẮT BUỘC (doanh_nghiep_id)
+	doanhNghiepIDStr := c.Query("doanh_nghiep_id")
+	if doanhNghiepIDStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "doanh_nghiep_id là bắt buộc"})
+		return
+	}
+	doanhNghiepID, err := uuid.FromString(doanhNghiepIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "doanh_nghiep_id không hợp lệ"})
+		return
+	}
+
+	// 3. Lấy query param Phân trang (với giá trị mặc định)
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
+	if page <= 0 {
+		page = 1
+	}
+	if pageSize <= 0 || pageSize > 100 { // Giới hạn max 100
+		pageSize = 10
+	}
+
+	// 4. Gọi Service
+	response, err := h.hosoService.ListHoSo(c.Request.Context(), doanhNghiepID, &params, page, pageSize)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lỗi máy chủ khi lấy danh sách hồ sơ", "details": err.Error()})
+		return
+	}
+
+	// 5. Trả về
+	c.JSON(http.StatusOK, response)
+}
 func (h *HoSoHandler) UploadTaiLieu(c *gin.Context) {
 	hoSoTaiLieuIDStr := c.PostForm("ho_so_tai_lieu_id")
 	tieuDe := c.PostForm("tieu_de")
