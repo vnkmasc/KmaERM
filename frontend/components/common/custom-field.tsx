@@ -4,13 +4,12 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { Controller, ControllerRenderProps } from 'react-hook-form'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import { Button } from '../ui/button'
-import { CalendarIcon, Check, ChevronsUpDown, CircleX } from 'lucide-react'
+import { Check, ChevronsUpDown, CircleX } from 'lucide-react'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '../ui/command'
-import { cn, parseDateISOForInput, parseDateToISO } from '@/lib/utils/common'
+import { cn } from '@/lib/utils/common'
 import PasswordInput from './password-input'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '../ui/input-group'
 import { Switch } from '../ui/switch'
-import { Calendar } from '../ui/calendar'
 
 const CustomField: React.FC<ICustomField> = (props) => {
   const renderField = (field: ControllerRenderProps<any, string>) => {
@@ -131,32 +130,6 @@ const CustomField: React.FC<ICustomField> = (props) => {
             onCheckedChange={(checked) => field.onChange(checked)}
             disabled={props.disabled}
           />
-        )
-      case 'date_picker':
-        return (
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant='outline'
-                id={props.name}
-                className='w-48 justify-between font-normal'
-                disabled={props.disabled}
-              >
-                {field.value ? parseDateISOForInput(field.value, props.setting?.date?.includeTime) : 'Chọn thời gian'}
-                <CalendarIcon className='text-muted-foreground' />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent side='top' align='start' className='w-auto overflow-hidden p-0'>
-              <Calendar
-                mode='single'
-                selected={field.value ? new Date(field.value) : undefined}
-                captionLayout='dropdown'
-                onSelect={(date) => {
-                  field.onChange(parseDateToISO(date, props.setting?.date?.includeTime))
-                }}
-              />
-            </PopoverContent>
-          </Popover>
         )
     }
   }

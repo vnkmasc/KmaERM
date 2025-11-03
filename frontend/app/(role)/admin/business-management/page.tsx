@@ -13,7 +13,7 @@ import BusinessService from '@/services/go/business.service'
 import { IBusinessSearchParams, IUpdateBusinessSetup } from '@/types/business'
 import { EyeIcon, FileIcon, PencilIcon, PlusIcon, TrashIcon, UserRoundPen } from 'lucide-react'
 import Link from 'next/link'
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import useSWR from 'swr'
 import useSWRMutation from 'swr/mutation'
 import { ButtonGroup } from '@/components/ui/button-group'
@@ -30,12 +30,9 @@ const BusinessManagementPage = () => {
   const [idDetail, setIdDetail] = useState<string | undefined | null>(undefined)
   const [updateBusinessSetup, setUpdateBusinessSetup] = useState<IUpdateBusinessSetup | undefined>(undefined)
 
-  const handleChangePage = useCallback(
-    (page: number) => {
-      setFilter({ ...filter, page })
-    },
-    [filter]
-  )
+  const handleChangePage = (page: number) => {
+    setFilter({ ...filter, page })
+  }
 
   const querySearchBusinesses = useSWR('business' + JSON.stringify(filter), () =>
     BusinessService.searchBusinesses({
@@ -95,11 +92,13 @@ const BusinessManagementPage = () => {
             placeholder: 'Nhập mã số doanh nghiệp'
           }
         ]}
-        refreshQuery={querySearchBusinesses.mutate}
+        refetch={querySearchBusinesses.mutate}
         onFilter={setFilter}
         defaultValues={defaultFilter}
       />
       <CustomTable
+        pageSize={querySearchBusinesses.data?.limit}
+        page={querySearchBusinesses.data?.page}
         data={querySearchBusinesses.data?.data || []}
         items={[
           {

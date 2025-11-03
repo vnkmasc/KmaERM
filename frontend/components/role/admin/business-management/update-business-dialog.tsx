@@ -102,7 +102,8 @@ const UpdateBusinessDialog: React.FC<Props> = (props) => {
         {
           name: 'firstIssuedDate',
           label: 'Ngày cấp lần đầu MSDN',
-          type: 'date_picker',
+          type: 'input',
+          setting: { input: { type: 'date' } },
           required: true,
           placeholder: 'Nhập ngày cấp lần đầu MSDN',
           disabled: props.idDetail ? true : false,
@@ -144,7 +145,8 @@ const UpdateBusinessDialog: React.FC<Props> = (props) => {
         {
           name: 'idIssuedDate',
           label: 'Ngày cấp giấy tờ',
-          type: 'date_picker'
+          type: 'input',
+          setting: { input: { type: 'date' } }
         },
         { name: 'idIssuedBy', label: 'Nơi cấp giấy tờ', type: 'input', placeholder: 'Nhập nơi cấp giấy tờ' }
         // {

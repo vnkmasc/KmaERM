@@ -16,7 +16,7 @@ interface Props {
   items: IZodCustomField[]
   onFilter: Dispatch<SetStateAction<any>>
   defaultValues?: any
-  refreshQuery: () => void
+  refetch: () => void
 }
 
 const Filter: React.FC<Props> = (props) => {
@@ -67,7 +67,7 @@ const Filter: React.FC<Props> = (props) => {
       <CardHeader>
         <CardTitle className='row-span-2 self-center'>Tìm kiếm</CardTitle>
         <CardAction className='space-x-2'>
-          <Button variant={'secondary'} onClick={props.refreshQuery}>
+          <Button variant={'secondary'} onClick={props.refetch}>
             <RefreshCcw />
             <span className='hidden md:block'>Làm mới</span>
           </Button>

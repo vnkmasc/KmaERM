@@ -161,7 +161,7 @@ const BusinessDetailView: React.FC<Props> = (props) => {
           {
             icon: <Calendar />,
             title: 'Ngày cấp lần đầu MSDN',
-            value: parseDateISOForInput(queryBusinessDetail.data?.firstIssuedDate || '')
+            value: queryBusinessDetail.data?.firstIssuedDate
           },
           {
             icon: <RepeatIcon />,
@@ -184,7 +184,7 @@ const BusinessDetailView: React.FC<Props> = (props) => {
           {
             icon: <Calendar />,
             title: 'Ngày cấp định danh',
-            value: parseDateISOForInput(queryBusinessDetail.data?.idIssuedDate || '')
+            value: queryBusinessDetail.data?.idIssuedDate
           },
           { icon: <Map />, title: 'Nơi cấp định danh', value: queryBusinessDetail.data?.issuedBy },
           { icon: <DollarSign />, title: 'Vốn điều lệ', value: queryBusinessDetail.data?.charterCapital + ' VND' },
