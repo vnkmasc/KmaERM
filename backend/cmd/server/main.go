@@ -3,8 +3,12 @@ package main
 import (
 	"log"
 	"os"
+	"reflect"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
 
 	handler "github.com/vnkmasc/KmaERM/backend/internal/handlers"
@@ -51,6 +55,17 @@ func main() {
 	r.Use(gin.Logger(), gin.Recovery())
 	r.Use(middleware.CORSConfig())
 
+	// === CÀI ĐẶT VALIDATOR ĐỂ DÙNG JSON TAG ===
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterTagNameFunc(func(fld reflect.StructField) string {
+			name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+			if name == "-" {
+				return ""
+			}
+			return name
+		})
+	}
+
 	trusted := os.Getenv("TRUSTED_PROXIES")
 	if trusted == "" {
 		trusted = "127.0.0.1"
@@ -61,19 +76,23 @@ func main() {
 	dnRepo := repository.NewDoanhNghiepRepository(gormDB)
 	hosoRepo := repository.NewHoSoRepository()
 	tailieuRepo := repository.NewTaiLieuRepository()
+	gpRepo := repository.NewGiayPhepRepository()
 
 	//Service
 	dnService := service.NewDoanhNghiepService(dnRepo)
 	hosoService := service.NewHoSoService(gormDB, hosoRepo, tailieuRepo)
+	gpService := service.NewGiayPhepService(gormDB, gpRepo, hosoRepo)
+
 	//Handler
 	dnHandler := handler.NewDoanhNghiepHandler(dnService)
 	hosoHandler := handler.NewHoSoHandler(hosoService)
+	gpHandler := handler.NewGiayPhepHandler(gpService)
+
 	apiGroup := r.Group("/api/v1")
 	{
-		// Đăng ký các routes của DoanhNghiep
 		dnHandler.RegisterRoutes(apiGroup)
 		hosoHandler.RegisterRoutes(apiGroup)
-		// (Sau này gọi giayPhepHandler.RegisterRoutes(apiGroup)... ở đây)
+		gpHandler.RegisterRoutes(apiGroup)
 	}
 
 	r.GET("/", func(c *gin.Context) {

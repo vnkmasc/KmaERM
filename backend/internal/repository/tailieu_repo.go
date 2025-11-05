@@ -12,7 +12,7 @@ type TaiLieuRepository interface {
 	GetLoaiTaiLieuByTen(ctx context.Context, db *gorm.DB, ten string) (*models.LoaiTaiLieu, error)
 	CreateHoSoTaiLieu(ctx context.Context, db *gorm.DB, hstl *models.HoSoTaiLieu) error
 	CreateTaiLieu(ctx context.Context, db *gorm.DB, taiLieu *models.TaiLieu) error
-
+	ListLoaiTaiLieu(ctx context.Context, db *gorm.DB, tenTaiLieu []string) ([]models.LoaiTaiLieu, error)
 	GetTaiLieuByID(ctx context.Context, db *gorm.DB, taiLieuID uuid.UUID) (*models.TaiLieu, error)
 	DeleteTaiLieu(ctx context.Context, db *gorm.DB, taiLieuID uuid.UUID) error
 }
@@ -22,7 +22,22 @@ type taiLieuRepo struct{}
 func NewTaiLieuRepository() TaiLieuRepository {
 	return &taiLieuRepo{}
 }
+func (r *taiLieuRepo) ListLoaiTaiLieu(ctx context.Context, db *gorm.DB, tenTaiLieu []string) ([]models.LoaiTaiLieu, error) {
+	var loaiTaiLieus []models.LoaiTaiLieu
+	query := db.WithContext(ctx).Model(&models.LoaiTaiLieu{})
 
+	// Nếu có danh sách tên, lọc theo tên
+	if len(tenTaiLieu) > 0 {
+		query = query.Where("ten IN ?", tenTaiLieu)
+	}
+
+	// Sắp xếp theo tên
+	err := query.Order("ten ASC").Find(&loaiTaiLieus).Error
+	if err != nil {
+		return nil, err
+	}
+	return loaiTaiLieus, nil
+}
 func (r *taiLieuRepo) GetLoaiTaiLieuByTen(ctx context.Context, db *gorm.DB, ten string) (*models.LoaiTaiLieu, error) {
 	var loaiTaiLieu models.LoaiTaiLieu
 	err := db.WithContext(ctx).Where("ten = ?", ten).First(&loaiTaiLieu).Error

@@ -41,6 +41,7 @@ func (h *HoSoHandler) RegisterRoutes(router *gin.RouterGroup) {
 		taiLieuGroup.DELETE("/:id", h.DeleteTaiLieu)
 		taiLieuGroup.GET("/download/:id", h.DownloadTaiLieu)
 	}
+	router.GET("/loai-tai-lieu", h.ListLoaiTaiLieu)
 }
 
 func (h *HoSoHandler) CreateHoSo(c *gin.Context) {
@@ -85,6 +86,22 @@ func (h *HoSoHandler) CreateHoSo(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"data": details})
+}
+func (h *HoSoHandler) ListLoaiTaiLieu(c *gin.Context) {
+
+	tenThuTuc := c.Query("ten_thu_tuc")
+
+	loaiTaiLieus, err := h.hosoService.GetLoaiTaiLieu(c.Request.Context(), tenThuTuc)
+	if err != nil {
+		if errors.Is(err, service.ErrLoaiThuTucKhongHopLe) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lỗi máy chủ khi lấy loại tài liệu", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": loaiTaiLieus})
 }
 
 func (h *HoSoHandler) GetHoSoDetails(c *gin.Context) {

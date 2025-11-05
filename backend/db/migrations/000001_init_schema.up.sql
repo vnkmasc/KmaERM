@@ -41,7 +41,6 @@ CREATE TABLE ho_so (
     ngay_hen_tra TIMESTAMPTZ NOT NULL,
     so_giay_phep_theo_ho_so VARCHAR(100),
     trang_thai_ho_so VARCHAR(100) NOT NULL,
-    
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -77,7 +76,9 @@ CREATE TABLE giay_phep (
     ngay_hieu_luc DATE NOT NULL,
     ngay_het_han DATE NOT NULL,
     trang_thai_giay_phep VARCHAR(100) NOT NULL,
-    
+    file_duong_dan TEXT NULL,
+    h1_hash TEXT NULL,
+    h2_hash TEXT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

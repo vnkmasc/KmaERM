@@ -17,6 +17,11 @@ type GiayPhep struct {
 	CreatedAt         time.Time `json:"created_at"`
 	UpdatedAt         time.Time `json:"updated_at"`
 
+	FileDuongDan *string `json:"file_duong_dan,omitempty"`
+
+	H1Hash *string `json:"h1_hash,omitempty"`
+	H2Hash *string `json:"h2_hash,omitempty"`
+
 	HoSo HoSo `gorm:"foreignKey:HoSoID" json:"ho_so"`
 }
 

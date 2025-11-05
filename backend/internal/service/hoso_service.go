@@ -32,6 +32,7 @@ type HoSoService interface {
 	DeleteTaiLieu(ctx context.Context, taiLieuID uuid.UUID) error
 	GetTaiLieuByID(ctx context.Context, taiLieuID uuid.UUID) (*models.TaiLieu, error)
 	UpdateHoSo(ctx context.Context, hoSoID uuid.UUID, req *dto.UpdateHoSoRequest) (*models.HoSo, error)
+	GetLoaiTaiLieu(ctx context.Context, tenThuTuc string) ([]models.LoaiTaiLieu, error)
 }
 
 type hoSoService struct {
@@ -135,9 +136,6 @@ func (s *hoSoService) getRequiredTaiLieu(loaiThuTuc string) ([]string, error) {
 		return []string{
 			"Đơn đề nghị cấp sửa đổi, bổ sung Giấy phép kinh doanh",
 			"Giấy phép kinh doanh sản phẩm, dịch vụ mật mã dân sự",
-			// Ghi chú: Cần bổ sung logic để yêu cầu thêm các tài liệu
-			// liên quan đến nội dung sửa đổi (ví dụ: "Tài liệu kĩ thuật"
-			// nếu thêm sản phẩm mới).
 		}, nil
 
 	case "Gia hạn Giấy phép kinh doanh":
@@ -169,7 +167,24 @@ func (s *hoSoService) getRequiredTaiLieu(loaiThuTuc string) ([]string, error) {
 		return nil, ErrLoaiThuTucKhongHopLe
 	}
 }
+func (s *hoSoService) GetLoaiTaiLieu(ctx context.Context, tenThuTuc string) ([]models.LoaiTaiLieu, error) {
+	var requiredNames []string
+	var err error
 
+	if tenThuTuc != "" {
+		requiredNames, err = s.getRequiredTaiLieu(tenThuTuc)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	loaiTaiLieus, err := s.tailieuRepo.ListLoaiTaiLieu(ctx, s.db, requiredNames)
+	if err != nil {
+		return nil, fmt.Errorf("lỗi khi lấy danh sách loại tài liệu: %w", err)
+	}
+
+	return loaiTaiLieus, nil
+}
 func (s *hoSoService) GetHoSoDetails(ctx context.Context, hoSoID uuid.UUID) (*models.HoSo, error) {
 	hoSo, err := s.hosoRepo.GetHoSoDetails(ctx, s.db, hoSoID)
 	if err != nil {
