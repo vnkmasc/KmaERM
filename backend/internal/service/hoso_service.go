@@ -32,7 +32,7 @@ type HoSoService interface {
 	DeleteTaiLieu(ctx context.Context, taiLieuID uuid.UUID) error
 	GetTaiLieuByID(ctx context.Context, taiLieuID uuid.UUID) (*models.TaiLieu, error)
 	UpdateHoSo(ctx context.Context, hoSoID uuid.UUID, req *dto.UpdateHoSoRequest) (*models.HoSo, error)
-	GetLoaiTaiLieu(ctx context.Context, tenThuTuc string) ([]models.LoaiTaiLieu, error)
+	GetLoaiTaiLieu(ctx context.Context, tenThuTuc string) (any, error)
 }
 
 type hoSoService struct {
@@ -167,23 +167,54 @@ func (s *hoSoService) getRequiredTaiLieu(loaiThuTuc string) ([]string, error) {
 		return nil, ErrLoaiThuTucKhongHopLe
 	}
 }
-func (s *hoSoService) GetLoaiTaiLieu(ctx context.Context, tenThuTuc string) ([]models.LoaiTaiLieu, error) {
-	var requiredNames []string
-	var err error
+
+var allThuTucNames = []string{
+	"Cấp mới Giấy phép kinh doanh",
+	"Sửa đổi, bổ sung Giấy phép kinh doanh",
+	"Gia hạn Giấy phép kinh doanh",
+	"Cấp lại Giấy phép kinh doanh",
+	"Cấp Giấy phép xuất khẩu, nhập khẩu",
+	"Báo cáo hoạt động định kỳ",
+}
+
+func (s *hoSoService) GetLoaiTaiLieu(ctx context.Context, tenThuTuc string) (any, error) {
 
 	if tenThuTuc != "" {
-		requiredNames, err = s.getRequiredTaiLieu(tenThuTuc)
+		requiredNames, err := s.getRequiredTaiLieu(tenThuTuc)
 		if err != nil {
 			return nil, err
 		}
+
+		loaiTaiLieus, err := s.tailieuRepo.ListLoaiTaiLieu(ctx, s.db, requiredNames)
+		if err != nil {
+			return nil, fmt.Errorf("lỗi khi lấy danh sách loại tài liệu: %w", err)
+		}
+		return loaiTaiLieus, nil
 	}
 
-	loaiTaiLieus, err := s.tailieuRepo.ListLoaiTaiLieu(ctx, s.db, requiredNames)
-	if err != nil {
-		return nil, fmt.Errorf("lỗi khi lấy danh sách loại tài liệu: %w", err)
+	var groupedResult []dto.GroupedLoaiTaiLieuResponse
+
+	for _, thuTucName := range allThuTucNames {
+
+		requiredNames, _ := s.getRequiredTaiLieu(thuTucName)
+		if requiredNames == nil {
+			continue
+		}
+
+		taiLieuModels, err := s.tailieuRepo.ListLoaiTaiLieu(ctx, s.db, requiredNames)
+		if err != nil {
+			return nil, fmt.Errorf("lỗi khi lấy tài liệu cho nhóm '%s': %w", thuTucName, err)
+		}
+
+		group := dto.GroupedLoaiTaiLieuResponse{
+			TenThuTuc: thuTucName,
+			TaiLieus:  taiLieuModels,
+		}
+
+		groupedResult = append(groupedResult, group)
 	}
 
-	return loaiTaiLieus, nil
+	return groupedResult, nil
 }
 func (s *hoSoService) GetHoSoDetails(ctx context.Context, hoSoID uuid.UUID) (*models.HoSo, error) {
 	hoSo, err := s.hosoRepo.GetHoSoDetails(ctx, s.db, hoSoID)

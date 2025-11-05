@@ -35,9 +35,12 @@ type HoSoListResponse struct {
 
 	Page     int   `json:"page"`
 	PageSize int   `json:"page_size"`
-	Total    int64 `json:"total"` // Đổi tên từ total_records -> total
+	Total    int64 `json:"total"`
 }
-
+type GroupedLoaiTaiLieuResponse struct {
+	TenThuTuc string               `json:"ten_thu_tuc"`
+	TaiLieus  []models.LoaiTaiLieu `json:"tai_lieus"`
+}
 type HoSoDetailsResponse struct {
 	ID                 uuid.UUID `json:"id"`
 	DoanhNghiepID      uuid.UUID `json:"doanh_nghiep_id"`
