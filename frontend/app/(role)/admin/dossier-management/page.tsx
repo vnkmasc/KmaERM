@@ -25,6 +25,7 @@ import useSWR from 'swr'
 import useSWRMutation from 'swr/mutation'
 
 const DossierManagementPage = () => {
+  // Sử dụng search params khiến cho default value của select không bị lỗi
   const searchParams = useSearchParams()
   const initialParams = useMemo(() => searchParamsToObject(searchParams), [searchParams])
   const defaultFilter = {

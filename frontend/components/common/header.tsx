@@ -58,10 +58,7 @@ const Header: React.FC<Props> = (props) => {
     },
     {
       title: md && !lg ? 'QLGP' : 'Quản lý giấy phép',
-      groups: [
-        { title: 'Giấy phép kinh doanh', href: '/admin/license-management/business' },
-        { title: 'Giấy phép xuất/nhập khẩu', href: '/admin/license-management/import-export' }
-      ]
+      href: '/admin/license-management'
     }
   ]
 

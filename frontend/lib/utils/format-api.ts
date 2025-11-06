@@ -2,6 +2,7 @@ import { IBusiness, IUpdateBusinessCode } from '@/types/business'
 import { parseCurrencyToNumber, parseDateInputToISO, parseDateISOForInput, parseNumberToVNDCurrency } from './common'
 import { IDossierDocument, IDossier, IDossierDialogData, IDossierTableData } from '@/types/dossier'
 import { IOption } from '@/types/form-field'
+import { ILicense } from '@/types/license'
 
 export const formatBusiness = {
   dataGetted(data: any): IBusiness {
@@ -116,6 +117,30 @@ export const formatDossier = {
         title: file.tieu_de,
         path: file.duong_dan
       }))
+    }
+  }
+}
+
+export const formatLicense = {
+  dataGetted(data: any): ILicense {
+    return {
+      id: data.id,
+      dossierId: data.ho_so_id,
+      licenseType: data.loai_giay_phep,
+      licenseCode: data.so_giay_phep,
+      licenseStatus: data.trang_thai_giay_phep,
+      effectiveDate: parseDateISOForInput(data.ngay_hieu_luc),
+      expirationDate: parseDateISOForInput(data.ngay_het_han)
+    }
+  },
+  dataSent(data: ILicense): any {
+    return {
+      ho_so_id: data.dossierId,
+      loai_giay_phep: data.licenseType,
+      so_giay_phep: data.licenseCode,
+      trang_thai_giay_phep: data.licenseStatus,
+      ngay_hieu_luc: parseDateInputToISO(data.effectiveDate),
+      ngay_het_han: parseDateInputToISO(data.expirationDate)
     }
   }
 }
