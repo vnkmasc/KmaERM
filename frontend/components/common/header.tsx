@@ -67,7 +67,7 @@ const Header: React.FC<Props> = (props) => {
 
   return (
     <div className='fixed top-0 z-10 h-16 w-full shadow-lg'>
-      <header className='container flex h-full items-center justify-between bg-white dark:bg-black'>
+      <header className='bg-background container flex h-full items-center justify-between'>
         {props.role !== null ? (
           <div className='flex gap-2 md:hidden'>
             <Sheet>

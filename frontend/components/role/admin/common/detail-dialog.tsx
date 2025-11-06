@@ -72,7 +72,7 @@ const DetailDialog: React.FC<Props> = (props) => {
           <DialogTitle>{props.title}</DialogTitle>
         </DialogHeader>
         <form onSubmit={form.handleSubmit(props.onSubmit)} className='flex flex-col'>
-          <div className='max-h-[60vh] space-y-4 overflow-y-auto px-6 py-4'>
+          <div className='grid max-h-[60vh] grid-cols-1 gap-4 overflow-y-auto px-6 py-4'>
             {props.items.map((prop, index) => (
               <CustomField {...prop} control={form.control} key={index} />
             ))}

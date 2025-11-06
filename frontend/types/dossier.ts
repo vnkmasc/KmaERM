@@ -1,16 +1,16 @@
-export interface IDocument {
+export interface IDossierDocument {
   id: string
   type: {
     id: string
     name: string
     description: string
   }
+  files?: { id: string; title: string; path: string }[]
 }
 
 export interface IDossierTableData {
   id: string
   businessId: string
-  viBusinessName: string
   dossierCode: string
   dossierType: string
   dossierStatus: string
@@ -28,7 +28,16 @@ export interface IDossier {
   issuedDate: string
   receivedDate: string
   expectedReturnDate: string
-  documents: IDocument[]
+  documents: IDossierDocument[]
+}
+
+export interface IDossierDialogData {
+  dossierType: string
+  issuedDate: string
+  receivedDate: string
+  expectedReturnDate: string
+  dossierStatus: string
+  dossierCode?: string
 }
 
 export interface IDossierSearchParams {

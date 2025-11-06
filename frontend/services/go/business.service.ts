@@ -3,6 +3,7 @@ import goService from '.'
 import { PAGE_SIZE } from '@/constants/common'
 import { formatBusiness } from '@/lib/utils/format-api'
 import { IBusiness, IUpdateBusinessCode } from '@/types/business'
+import { IOption } from '@/types/form-field'
 
 export default class BusinessService {
   static async searchBusinesses(params: Record<string, any>) {
@@ -12,8 +13,13 @@ export default class BusinessService {
       data: res.data.map((item: any) => formatBusiness.dataGetted(item)),
       limit: res.limit,
       page: res.page,
-      total: res.total
+      totalPage: Math.ceil(res.total / res.limit)
     }
+  }
+
+  static async searchBusinessesByVIName(name: string): Promise<IOption[]> {
+    const res = await goService('/doanh-nghiep' + queryString({ ten_vi: name.trim(), limit: PAGE_SIZE }))
+    return res.data.map((item: any) => formatBusiness.optionSelectGetted(item))
   }
 
   static async getBusinessById(id: string) {

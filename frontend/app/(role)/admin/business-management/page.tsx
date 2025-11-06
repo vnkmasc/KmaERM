@@ -4,7 +4,7 @@ import CustomPagination from '@/components/role/admin/common/custom-pagination'
 import CustomTable from '@/components/role/admin/common/custom-table'
 import PageHeader from '@/components/common/page-header'
 import UpdateBusinessCodeDialog from '@/components/role/admin/business-management/update-business-code-dialog'
-import UpdateBusinessDialog from '@/components/role/admin/business-management/update-business-dialog'
+import InfoBusinessDialog from '@/components/role/admin/business-management/info-business-dialog'
 import Filter from '@/components/role/admin/common/filter'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -84,7 +84,7 @@ const BusinessManagementPage = () => {
       <Filter
         items={[
           { type: 'input', name: 'shortName', placeholder: 'Nhập tên viết tắt' },
-          { type: 'input', name: 'viName', placeholder: 'Nhập tên tiếng việt' },
+          { type: 'select', name: 'viName', placeholder: 'Nhập tên tiếng việt' },
           { type: 'input', name: 'enName', placeholder: 'Nhập tên tiếng anh' },
           {
             type: 'input',
@@ -104,7 +104,7 @@ const BusinessManagementPage = () => {
           {
             header: 'Tên doanh nghiệp (VI)',
             value: 'viName',
-            className: 'min-w-[200px] font-semibold text-blue-500',
+            className: 'min-w-[200px] font-semibold text-blue-500 hover:underline',
             render: (item) => <Link href={`/admin/business-management/${item.id}`}>{item.viName}</Link>
           },
           { header: 'Tên viết tắt', value: 'shortName' },
@@ -155,7 +155,6 @@ const BusinessManagementPage = () => {
                   variant={'outline'}
                   size={'icon'}
                   title='Xem giấy chứng nhận'
-                  // disabled={!props.item.certificateFilePath}
                   isLoading={mutateViewCertificate.isMutating}
                   onClick={() => {
                     if (item.certificateFilePath) {
@@ -187,14 +186,14 @@ const BusinessManagementPage = () => {
       />
       <CustomPagination
         page={querySearchBusinesses.data?.page}
-        totalPage={querySearchBusinesses.data?.total}
+        totalPage={querySearchBusinesses.data?.totalPage || 1}
         onChangePage={handleChangePage}
       />
-      <UpdateBusinessDialog
+      <InfoBusinessDialog
         idDetail={idDetail}
         onClose={() => setIdDetail(undefined)}
         refetch={querySearchBusinesses.mutate}
-        businessDetail={queryBusinessDetail.data}
+        data={queryBusinessDetail.data}
       />
       <UpdateBusinessCodeDialog
         refetch={querySearchBusinesses.mutate}
