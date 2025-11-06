@@ -17,7 +17,7 @@ import { parseDateInputToISO, searchParamsToObject, showNotification } from '@/l
 import BusinessService from '@/services/go/business.service'
 import DossierService from '@/services/go/dossier.service'
 import { IDossierSearchParams } from '@/types/dossier'
-import { LinkIcon, PencilIcon, PlusIcon, TrashIcon, UploadIcon } from 'lucide-react'
+import { FileIcon, LinkIcon, PencilIcon, PlusIcon, TrashIcon } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
@@ -212,7 +212,12 @@ const DossierManagementPage = () => {
             render: (item) => (
               <ButtonGroup>
                 <Link href={`/admin/business-management/${filter.businessId}`}>
-                  <Button size={'icon'} title='Xem chi tiết toàn bộ thông tin doanh nghiệp' className='rounded-r-none!'>
+                  <Button
+                    size={'icon'}
+                    title='Xem chi tiết toàn bộ thông tin doanh nghiệp'
+                    className='rounded-r-none!'
+                    variant={'secondary'}
+                  >
                     <LinkIcon />
                   </Button>
                 </Link>
@@ -226,11 +231,10 @@ const DossierManagementPage = () => {
                 </Button>
                 <Button
                   size='icon'
-                  variant={'secondary'}
-                  title='Thêm tài liệu vào hồ sơ'
+                  title='Xem danh sách tài liệu hồ sơ'
                   onClick={() => setIdDetailForUploadDocument(item.id)}
                 >
-                  <UploadIcon />
+                  <FileIcon />
                 </Button>
                 <DeleteAlertDialog
                   description={
