@@ -12,13 +12,13 @@ import {
 } from '@/lib/utils/validators'
 
 interface Props {
-  businessDetail: IBusiness | undefined
+  data: IBusiness | undefined
   idDetail: string | null | undefined
   onClose: () => void
   refetch?: () => void
 }
 
-const UpdateBusinessDialog: React.FC<Props> = (props) => {
+const InfoBusinessDialog: React.FC<Props> = (props) => {
   const mutateUpdateBusiness = useSWRMutation(
     'business-update',
     (_, { arg }: { arg: IBusiness }) => BusinessService.updateBusiness(props.idDetail!, arg),
@@ -59,12 +59,12 @@ const UpdateBusinessDialog: React.FC<Props> = (props) => {
   return (
     <DetailDialog
       mode={props.idDetail ? 'update' : props.idDetail === undefined ? undefined : 'create'}
-      title='Chi tiết doanh nghiệp'
+      title={props.idDetail ? 'Chi tiết doanh nghiệp' : 'Tạo doanh nghiệp'}
       onClose={() => {
         props.onClose()
       }}
       onSubmit={(data) => handleSubmitDialog(data)}
-      defaultValues={props.businessDetail || {}}
+      defaultValues={props.data || {}}
       items={[
         {
           name: 'viName',
@@ -102,7 +102,8 @@ const UpdateBusinessDialog: React.FC<Props> = (props) => {
         {
           name: 'firstIssuedDate',
           label: 'Ngày cấp lần đầu MSDN',
-          type: 'date_picker',
+          type: 'input',
+          setting: { input: { type: 'date' } },
           required: true,
           placeholder: 'Nhập ngày cấp lần đầu MSDN',
           disabled: props.idDetail ? true : false,
@@ -144,7 +145,8 @@ const UpdateBusinessDialog: React.FC<Props> = (props) => {
         {
           name: 'idIssuedDate',
           label: 'Ngày cấp giấy tờ',
-          type: 'date_picker'
+          type: 'input',
+          setting: { input: { type: 'date' } }
         },
         { name: 'idIssuedBy', label: 'Nơi cấp giấy tờ', type: 'input', placeholder: 'Nhập nơi cấp giấy tờ' }
         // {
@@ -158,4 +160,4 @@ const UpdateBusinessDialog: React.FC<Props> = (props) => {
   )
 }
 
-export default UpdateBusinessDialog
+export default InfoBusinessDialog

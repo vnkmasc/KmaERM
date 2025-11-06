@@ -59,37 +59,35 @@ const CustomPagination = ({ page, totalPage, onChangePage }: Props) => {
   const pageNumbers = getPageNumbers()
 
   return (
-    <div className='mt-4'>
-      <Pagination className='md:justify-end'>
-        <PaginationContent>
-          <PaginationItem className='cursor-pointer'>
-            <PaginationPrevious
-              onClick={() => page > 1 && onChangePage(page - 1)}
-              className={page <= 1 ? 'pointer-events-none opacity-50' : ''}
-            />
-          </PaginationItem>
+    <Pagination className='md:justify-end'>
+      <PaginationContent>
+        <PaginationItem className='cursor-pointer'>
+          <PaginationPrevious
+            onClick={() => page > 1 && onChangePage(page - 1)}
+            className={page <= 1 ? 'pointer-events-none opacity-50' : ''}
+          />
+        </PaginationItem>
 
-          {pageNumbers.map((pageNum, index) => (
-            <PaginationItem key={index} className='cursor-pointer'>
-              {pageNum === 'ellipsis' ? (
-                <PaginationEllipsis />
-              ) : (
-                <PaginationLink onClick={() => onChangePage(pageNum)} isActive={pageNum === page}>
-                  {pageNum}
-                </PaginationLink>
-              )}
-            </PaginationItem>
-          ))}
-
-          <PaginationItem className='cursor-pointer'>
-            <PaginationNext
-              onClick={() => page < totalPage && onChangePage(page + 1)}
-              className={page >= totalPage ? 'pointer-events-none opacity-50' : ''}
-            />
+        {pageNumbers.map((pageNum, index) => (
+          <PaginationItem key={index} className='cursor-pointer'>
+            {pageNum === 'ellipsis' ? (
+              <PaginationEllipsis />
+            ) : (
+              <PaginationLink onClick={() => onChangePage(pageNum)} isActive={pageNum === page}>
+                {pageNum}
+              </PaginationLink>
+            )}
           </PaginationItem>
-        </PaginationContent>
-      </Pagination>
-    </div>
+        ))}
+
+        <PaginationItem className='cursor-pointer'>
+          <PaginationNext
+            onClick={() => page < totalPage && onChangePage(page + 1)}
+            className={page >= totalPage ? 'pointer-events-none opacity-50' : ''}
+          />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
   )
 }
 

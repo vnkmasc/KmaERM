@@ -1,7 +1,7 @@
 import { clsx, type ClassValue } from 'clsx'
 import { ExternalToast, toast } from 'sonner'
 import { twMerge } from 'tailwind-merge'
-import { format, parseISO } from 'date-fns'
+import { format, isBefore, parseISO } from 'date-fns'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -13,15 +13,7 @@ export const showNotification = (
   setting?: ExternalToast
 ) => {
   return toast[type]('Thông báo', {
-    description:
-      description ||
-      {
-        success: 'Thao tác thành công',
-        error: 'Thao tác thất bại',
-        info: 'Thông tin',
-        warning: 'Cảnh báo',
-        message: 'Tin nhắn'
-      }[type],
+    description: description,
     classNames: {
       success: '[&_svg]:!text-green-500',
       error: '[&_svg]:!text-red-500',
@@ -68,38 +60,15 @@ export const parseDateISOForInput = (isoString: string, includeTime: boolean = f
   }
 }
 
-export const parseDateInputToISO = (dateStr: string | undefined, includeTime: boolean = false): string | undefined => {
+export const parseDateInputToISO = (dateStr: string | undefined): string | undefined => {
   if (!dateStr) return undefined
 
-  if (includeTime) {
-    // Khi có thời gian, parse như bình thường và convert sang UTC
-    const fullStr = dateStr.includes('T') ? dateStr : `${dateStr}T00:00`
-    const date = new Date(fullStr)
-    const iso = date.toISOString()
-    return iso.replace(/:\d{2}\.\d{3}Z$/, ':00Z')
+  if (dateStr.includes('T')) {
+    // Nếu có thời gian, thêm 00:00:00 và gửi kèm theo UTC+7 (HCM VN))
+    return dateStr + ':00+07:00'
   } else {
-    // Khi chỉ có ngày, tạo ISO string trực tiếp ở UTC 00:00:00 để tránh timezone shift
-    // Ví dụ: "2025-11-08" -> "2025-11-08T00:00:00Z"
-    return `${dateStr}T00:00:00Z`
-  }
-}
-
-export const parseDateToISO = (date: Date | undefined, includeTime: boolean = false): string | undefined => {
-  if (!date) return undefined
-
-  // Lấy local date/time components để tránh timezone issues
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-
-  if (includeTime) {
-    const hours = String(date.getHours()).padStart(2, '0')
-    const minutes = String(date.getMinutes()).padStart(2, '0')
-    const dateStr = `${year}-${month}-${day}T${hours}:${minutes}`
-    return parseDateInputToISO(dateStr, true)
-  } else {
-    const dateStr = `${year}-${month}-${day}`
-    return parseDateInputToISO(dateStr, false)
+    // Nếu chỉ có ngày, mặc định gửi kèm theo Zulu time zone (mặc định))
+    return dateStr + 'T00:00:00Z'
   }
 }
 
@@ -142,4 +111,10 @@ export const windowOpenBlankBlob = (blob: Blob) => {
       URL.revokeObjectURL(blobUrl)
     }, 60000)
   }
+}
+
+export const compareDateIsBefore = (date1: string, date2: string): boolean => {
+  const date1Obj = parseISO(date1)
+  const date2Obj = parseISO(date2)
+  return isBefore(date1Obj, date2Obj)
 }

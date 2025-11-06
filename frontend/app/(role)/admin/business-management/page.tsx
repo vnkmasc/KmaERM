@@ -4,7 +4,7 @@ import CustomPagination from '@/components/role/admin/common/custom-pagination'
 import CustomTable from '@/components/role/admin/common/custom-table'
 import PageHeader from '@/components/common/page-header'
 import UpdateBusinessCodeDialog from '@/components/role/admin/business-management/update-business-code-dialog'
-import UpdateBusinessDialog from '@/components/role/admin/business-management/update-business-dialog'
+import InfoBusinessDialog from '@/components/role/admin/business-management/info-business-dialog'
 import Filter from '@/components/role/admin/common/filter'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -13,7 +13,7 @@ import BusinessService from '@/services/go/business.service'
 import { IBusinessSearchParams, IUpdateBusinessSetup } from '@/types/business'
 import { EyeIcon, FileIcon, PencilIcon, PlusIcon, TrashIcon, UserRoundPen } from 'lucide-react'
 import Link from 'next/link'
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import useSWR from 'swr'
 import useSWRMutation from 'swr/mutation'
 import { ButtonGroup } from '@/components/ui/button-group'
@@ -30,12 +30,9 @@ const BusinessManagementPage = () => {
   const [idDetail, setIdDetail] = useState<string | undefined | null>(undefined)
   const [updateBusinessSetup, setUpdateBusinessSetup] = useState<IUpdateBusinessSetup | undefined>(undefined)
 
-  const handleChangePage = useCallback(
-    (page: number) => {
-      setFilter({ ...filter, page })
-    },
-    [filter]
-  )
+  const handleChangePage = (page: number) => {
+    setFilter({ ...filter, page })
+  }
 
   const querySearchBusinesses = useSWR('business' + JSON.stringify(filter), () =>
     BusinessService.searchBusinesses({
@@ -87,7 +84,7 @@ const BusinessManagementPage = () => {
       <Filter
         items={[
           { type: 'input', name: 'shortName', placeholder: 'Nhập tên viết tắt' },
-          { type: 'input', name: 'viName', placeholder: 'Nhập tên tiếng việt' },
+          { type: 'select', name: 'viName', placeholder: 'Nhập tên tiếng việt' },
           { type: 'input', name: 'enName', placeholder: 'Nhập tên tiếng anh' },
           {
             type: 'input',
@@ -95,17 +92,19 @@ const BusinessManagementPage = () => {
             placeholder: 'Nhập mã số doanh nghiệp'
           }
         ]}
-        refreshQuery={querySearchBusinesses.mutate}
+        refetch={querySearchBusinesses.mutate}
         onFilter={setFilter}
         defaultValues={defaultFilter}
       />
       <CustomTable
+        pageSize={querySearchBusinesses.data?.limit}
+        page={querySearchBusinesses.data?.page}
         data={querySearchBusinesses.data?.data || []}
         items={[
           {
             header: 'Tên doanh nghiệp (VI)',
             value: 'viName',
-            className: 'min-w-[200px] font-semibold text-blue-500',
+            className: 'min-w-[200px] font-semibold text-blue-500 hover:underline',
             render: (item) => <Link href={`/admin/business-management/${item.id}`}>{item.viName}</Link>
           },
           { header: 'Tên viết tắt', value: 'shortName' },
@@ -156,7 +155,6 @@ const BusinessManagementPage = () => {
                   variant={'outline'}
                   size={'icon'}
                   title='Xem giấy chứng nhận'
-                  // disabled={!props.item.certificateFilePath}
                   isLoading={mutateViewCertificate.isMutating}
                   onClick={() => {
                     if (item.certificateFilePath) {
@@ -188,14 +186,14 @@ const BusinessManagementPage = () => {
       />
       <CustomPagination
         page={querySearchBusinesses.data?.page}
-        totalPage={querySearchBusinesses.data?.total}
+        totalPage={querySearchBusinesses.data?.totalPage || 1}
         onChangePage={handleChangePage}
       />
-      <UpdateBusinessDialog
+      <InfoBusinessDialog
         idDetail={idDetail}
         onClose={() => setIdDetail(undefined)}
         refetch={querySearchBusinesses.mutate}
-        businessDetail={queryBusinessDetail.data}
+        data={queryBusinessDetail.data}
       />
       <UpdateBusinessCodeDialog
         refetch={querySearchBusinesses.mutate}

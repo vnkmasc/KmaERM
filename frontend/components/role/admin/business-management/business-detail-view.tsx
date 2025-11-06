@@ -34,7 +34,7 @@ import useSWRMutation from 'swr/mutation'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { useEffect, useState } from 'react'
-import UpdateBusinessDialog from './update-business-dialog'
+import InfoBusinessDialog from './info-business-dialog'
 import UpdateBusinessCodeDialog from './update-business-code-dialog'
 import { parseDateISOForInput, showNotification } from '@/lib/utils/common'
 import { useRouter } from 'next/navigation'
@@ -46,8 +46,8 @@ interface Props {
 }
 
 const BusinessDetailView: React.FC<Props> = (props) => {
-  const queryBusinessDetail = useSWR(`business-${props.id}`, () => BusinessService.getBusinessById(props.id))
-  const [openUpdateBusinessDialog, setOpenUpdateBusinessDialog] = useState(false)
+  const queryBusinessDetail = useSWR(props.id, () => BusinessService.getBusinessById(props.id))
+  const [openInfoBusinessDialog, setOpenInfoBusinessDialog] = useState(false)
   const [openUpdateBusinessCodeDialog, setOpenUpdateBusinessCodeDialog] = useState(false)
   const router = useRouter()
 
@@ -76,8 +76,6 @@ const BusinessDetailView: React.FC<Props> = (props) => {
         default:
           return iframUrl
       }
-
-      return iframUrl
     }
   )
 
@@ -139,7 +137,7 @@ const BusinessDetailView: React.FC<Props> = (props) => {
         loading={queryBusinessDetail.isLoading}
         errorText={queryBusinessDetail.error?.message}
         actions={[
-          <Button variant='outline' key='update' onClick={() => setOpenUpdateBusinessDialog(true)}>
+          <Button variant='outline' key='update' onClick={() => setOpenInfoBusinessDialog(true)}>
             <Edit /> <span className='hidden md:block'>Chỉnh sửa</span>
           </Button>,
           <Button
@@ -161,7 +159,7 @@ const BusinessDetailView: React.FC<Props> = (props) => {
           {
             icon: <Calendar />,
             title: 'Ngày cấp lần đầu MSDN',
-            value: parseDateISOForInput(queryBusinessDetail.data?.firstIssuedDate || '')
+            value: queryBusinessDetail.data?.firstIssuedDate
           },
           {
             icon: <RepeatIcon />,
@@ -184,7 +182,7 @@ const BusinessDetailView: React.FC<Props> = (props) => {
           {
             icon: <Calendar />,
             title: 'Ngày cấp định danh',
-            value: parseDateISOForInput(queryBusinessDetail.data?.idIssuedDate || '')
+            value: queryBusinessDetail.data?.idIssuedDate
           },
           { icon: <Map />, title: 'Nơi cấp định danh', value: queryBusinessDetail.data?.issuedBy },
           { icon: <DollarSign />, title: 'Vốn điều lệ', value: queryBusinessDetail.data?.charterCapital + ' VND' },
@@ -233,10 +231,10 @@ const BusinessDetailView: React.FC<Props> = (props) => {
 
       {queryBusinessDetail.data && (
         <>
-          <UpdateBusinessDialog
-            idDetail={openUpdateBusinessDialog ? props.id : undefined}
-            onClose={() => setOpenUpdateBusinessDialog(false)}
-            businessDetail={queryBusinessDetail.data}
+          <InfoBusinessDialog
+            idDetail={openInfoBusinessDialog ? props.id : undefined}
+            onClose={() => setOpenInfoBusinessDialog(false)}
+            data={queryBusinessDetail.data}
             refetch={queryBusinessDetail.mutate}
           />
           <UpdateBusinessCodeDialog

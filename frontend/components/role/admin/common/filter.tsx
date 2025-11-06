@@ -2,7 +2,7 @@
 
 import CustomField from '@/components/common/custom-field'
 import { Button } from '@/components/ui/button'
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { queryString } from '@/lib/utils/common'
 import { IZodCustomField } from '@/types/form-field'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -12,11 +12,15 @@ import { Dispatch, SetStateAction } from 'react'
 import { useForm } from 'react-hook-form'
 import z from 'zod'
 
+interface IFilterItem extends IZodCustomField {
+  className?: string
+}
 interface Props {
-  items: IZodCustomField[]
+  items: IFilterItem[]
   onFilter: Dispatch<SetStateAction<any>>
   defaultValues?: any
-  refreshQuery: () => void
+  refetch: () => void
+  description?: string
 }
 
 const Filter: React.FC<Props> = (props) => {
@@ -65,9 +69,10 @@ const Filter: React.FC<Props> = (props) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className='row-span-2 self-center'>Tìm kiếm</CardTitle>
+        <CardTitle className={`${!props.description && 'row-span-2 self-center'}`}>Tìm kiếm</CardTitle>
+        {props.description && <CardDescription>{props.description}</CardDescription>}
         <CardAction className='space-x-2'>
-          <Button variant={'secondary'} onClick={props.refreshQuery}>
+          <Button variant={'secondary'} onClick={props.refetch}>
             <RefreshCcw />
             <span className='hidden md:block'>Làm mới</span>
           </Button>
@@ -82,12 +87,15 @@ const Filter: React.FC<Props> = (props) => {
         </CardAction>
       </CardHeader>
       <CardContent>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className='grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5'>
-            {props.items.map((prop, index) => (
-              <CustomField {...prop} control={form.control} key={index} />
-            ))}
-          </div>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className='grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5'
+        >
+          {props.items.map((prop, index) => (
+            <div className={prop.className} key={index}>
+              <CustomField {...prop} control={form.control} />
+            </div>
+          ))}
         </form>
       </CardContent>
     </Card>

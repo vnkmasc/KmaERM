@@ -8,12 +8,12 @@ export interface IOption {
 }
 
 export interface ISelectGroup {
-  label: string
+  label: string | undefined
   options: IOption[]
 }
 
 export interface ICustomField {
-  type: 'input' | 'select' | 'search_select' | 'password' | 'switch' | 'date_picker'
+  type: 'input' | 'select' | 'search_select' | 'password' | 'switch' | 'query_select'
   name: string
   control: Control<any>
   label?: string
@@ -26,9 +26,9 @@ export interface ICustomField {
     select?: {
       groups: ISelectGroup[]
     }
-    date?: {
-      includeTime: boolean
-      mode?: 'single' | 'range' | 'multiple'
+    querySelect?: {
+      // eslint-disable-next-line no-unused-vars
+      queryFn: (keyword: string) => Promise<IOption[]>
     }
   }
 }

@@ -1,16 +1,33 @@
 import { ICustomField } from '@/types/form-field'
 import { Field, FieldContent, FieldDescription, FieldError, FieldLabel } from '../ui/field'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '../ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue
+} from '../ui/select'
 import { Controller, ControllerRenderProps } from 'react-hook-form'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import { Button } from '../ui/button'
-import { CalendarIcon, Check, ChevronsUpDown, CircleX } from 'lucide-react'
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '../ui/command'
-import { cn, parseDateISOForInput, parseDateToISO } from '@/lib/utils/common'
+import { Check, ChevronsUpDown, CircleX } from 'lucide-react'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator
+} from '../ui/command'
+import { cn } from '@/lib/utils/common'
 import PasswordInput from './password-input'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '../ui/input-group'
 import { Switch } from '../ui/switch'
-import { Calendar } from '../ui/calendar'
+import QuerySelect from './query-select'
 
 const CustomField: React.FC<ICustomField> = (props) => {
   const renderField = (field: ControllerRenderProps<any, string>) => {
@@ -46,9 +63,8 @@ const CustomField: React.FC<ICustomField> = (props) => {
             disabled={props.disabled}
             onValueChange={field.onChange}
             value={field.value}
-            defaultValue={field.value}
           >
-            <SelectTrigger>
+            <SelectTrigger className='mb-0 cursor-pointer'>
               <SelectValue placeholder={props.placeholder} id={props.name} />
             </SelectTrigger>
             <SelectContent>
@@ -57,10 +73,11 @@ const CustomField: React.FC<ICustomField> = (props) => {
                   <SelectGroup key={index}>
                     {group.label && <SelectLabel>{group.label}</SelectLabel>}
                     {group.options.map((option, index) => (
-                      <SelectItem key={index} value={option.value}>
+                      <SelectItem key={index} value={option.value} className='cursor-pointer'>
                         {option.label}
                       </SelectItem>
                     ))}
+                    {index < (props.setting?.select?.groups?.length || 0) - 1 && <SelectSeparator />}
                   </SelectGroup>
                 ))
               ) : (
@@ -77,7 +94,7 @@ const CustomField: React.FC<ICustomField> = (props) => {
                 variant='outline'
                 role='combobox'
                 className={cn(
-                  'hover:bg-background w-full justify-between px-3 py-1',
+                  'hover:bg-background',
                   !field.value && 'text-muted-foreground hover:text-muted-foreground'
                 )}
                 disabled={props.disabled}
@@ -109,6 +126,7 @@ const CustomField: React.FC<ICustomField> = (props) => {
                               field.onChange(selectedOption.value === field.value ? '' : selectedOption.value)
                             }
                           }}
+                          className='cursor-pointer'
                         >
                           {option.label}
                           <Check
@@ -116,6 +134,7 @@ const CustomField: React.FC<ICustomField> = (props) => {
                           />
                         </CommandItem>
                       ))}
+                      {groupIndex < (props.setting?.select?.groups?.length || 0) - 1 && <CommandSeparator />}
                     </CommandGroup>
                   ))}
                 </CommandList>
@@ -132,32 +151,8 @@ const CustomField: React.FC<ICustomField> = (props) => {
             disabled={props.disabled}
           />
         )
-      case 'date_picker':
-        return (
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant='outline'
-                id={props.name}
-                className='w-48 justify-between font-normal'
-                disabled={props.disabled}
-              >
-                {field.value ? parseDateISOForInput(field.value, props.setting?.date?.includeTime) : 'Chọn thời gian'}
-                <CalendarIcon className='text-muted-foreground' />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent side='top' align='start' className='w-auto overflow-hidden p-0'>
-              <Calendar
-                mode='single'
-                selected={field.value ? new Date(field.value) : undefined}
-                captionLayout='dropdown'
-                onSelect={(date) => {
-                  field.onChange(parseDateToISO(date, props.setting?.date?.includeTime))
-                }}
-              />
-            </PopoverContent>
-          </Popover>
-        )
+      case 'query_select':
+        return <QuerySelect field={field} {...props} />
     }
   }
 
@@ -189,8 +184,13 @@ const CustomField: React.FC<ICustomField> = (props) => {
       control={props.control}
       name={props.name}
       render={({ field, fieldState }) => (
-        <Field data-invalid={!!fieldState.error} className='-space-y-1'>
-          {props.label && <FieldLabel htmlFor={props.name}>{props.label}</FieldLabel>}
+        <Field data-invalid={!!fieldState.error} className={'-space-y-1'}>
+          {props.label && (
+            <FieldLabel htmlFor={props.name}>
+              {props.label}
+              {props.required && <span className='text-red-500'>*</span>}
+            </FieldLabel>
+          )}
 
           {renderField(field)}
           {props.description && <FieldDescription>{props.description}</FieldDescription>}
