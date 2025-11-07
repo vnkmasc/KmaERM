@@ -36,6 +36,8 @@ const DossierManagementPage = () => {
   const [idDetail, setIdDetail] = useState<string | undefined | null>(undefined)
   const [idDetailForUploadDocument, setIdDetailForUploadDocument] = useState<string | undefined>(undefined)
 
+  const queryBusinessDetail = useSWR(filter.businessId, () => BusinessService.getBusinessById(filter.businessId!))
+
   const renderRangeDate = (dateType: string | undefined, from: string | undefined, to: string | undefined) => {
     if (!dateType) return {}
 
@@ -201,7 +203,9 @@ const DossierManagementPage = () => {
             header: 'Trạng thái',
             value: 'dossierStatus',
             render: (item) => (
-              <Badge variant={item.dossierStatus === 'MoiTao' ? 'outline' : 'default'}>{item.dossierStatus}</Badge>
+              <Badge variant={item.dossierStatus === 'MoiTao' ? 'outline' : 'default'}>
+                {DOSSIER_STATUS_OPTIONS.find((option) => option.value === item.dossierStatus)?.label}
+              </Badge>
             )
           },
           { header: 'Ngày đăng ký', value: 'issuedDate' },
@@ -268,6 +272,7 @@ const DossierManagementPage = () => {
         data={queryDossierDetail.data}
         refetch={querySearchDossiers.mutate}
         businessId={filter.businessId!}
+        businessName={queryBusinessDetail.data?.viName || ''}
       />
 
       <Dialog

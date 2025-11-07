@@ -15,6 +15,7 @@ interface Props {
   onSubmit: (data: any) => void
   onClose: () => void
   defaultValues?: any
+  beforeContent?: React.ReactNode
 }
 
 const DetailDialog: React.FC<Props> = (props) => {
@@ -41,7 +42,7 @@ const DetailDialog: React.FC<Props> = (props) => {
 
   // Reset form khi defaultValues thay đổi
   useEffect(() => {
-    if (props.mode === 'update' && props.defaultValues && Object.keys(props.defaultValues).length > 0) {
+    if (props.mode !== undefined && props.defaultValues && Object.keys(props.defaultValues).length > 0) {
       for (const key in props.defaultValues) {
         form.setValue(key, props.defaultValues[key] ?? '')
       }
@@ -71,8 +72,9 @@ const DetailDialog: React.FC<Props> = (props) => {
         <DialogHeader className='p-6 pb-0'>
           <DialogTitle>{props.title}</DialogTitle>
         </DialogHeader>
+        {props.beforeContent}
         <form onSubmit={form.handleSubmit(props.onSubmit)} className='flex flex-col'>
-          <div className='grid max-h-[60vh] grid-cols-1 gap-4 overflow-y-auto px-6 py-4'>
+          <div className='grid max-h-[60vh] grid-cols-1 gap-4 overflow-y-auto px-6'>
             {props.items.map((prop, index) => (
               <CustomField {...prop} control={form.control} key={index} />
             ))}
