@@ -17,11 +17,13 @@ import (
 )
 
 var (
-	ErrLoaiThuTucKhongHopLe   = errors.New("loại thủ tục không xác định")
-	ErrHoSoKhongTimThay       = errors.New("không tìm thấy hồ sơ")
-	ErrKheTaiLieuKhongTonTai  = errors.New("khe cắm tài liệu không tồn tại")
-	ErrDoanhNghiepKhongTonTai = errors.New("doanh nghiệp không tồn tại")
-	ErrTaiLieuKhongTimThay    = errors.New("không tìm thấy tài liệu")
+	ErrLoaiThuTucKhongHopLe      = errors.New("loại thủ tục không xác định")
+	ErrHoSoKhongTimThay          = errors.New("không tìm thấy hồ sơ")
+	ErrKheTaiLieuKhongTonTai     = errors.New("khe cắm tài liệu không tồn tại")
+	ErrDoanhNghiepKhongTonTai    = errors.New("doanh nghiệp không tồn tại")
+	ErrTaiLieuKhongTimThay       = errors.New("không tìm thấy tài liệu")
+	ErrHoSoDaCoGiayPhepNOTDELETE = errors.New("hồ sơ đã được cấp giấy phép, không thể xóa")
+	ErrHoSoDangXuLy              = errors.New("hồ sơ đang trong quá trình xử lý hoặc đã duyệt, không thể xóa")
 )
 
 type HoSoService interface {
@@ -33,6 +35,7 @@ type HoSoService interface {
 	GetTaiLieuByID(ctx context.Context, taiLieuID uuid.UUID) (*models.TaiLieu, error)
 	UpdateHoSo(ctx context.Context, hoSoID uuid.UUID, req *dto.UpdateHoSoRequest) (*models.HoSo, error)
 	GetLoaiTaiLieu(ctx context.Context, tenThuTuc string) (any, error)
+	DeleteHoSo(ctx context.Context, hoSoID uuid.UUID) error
 }
 
 type hoSoService struct {
@@ -52,6 +55,14 @@ func NewHoSoService(
 		tailieuRepo: tailieuRepo,
 	}
 }
+
+const (
+	TrangThaiHoSoMoiTao     = "MoiTao"
+	TrangThaiHoSoBiTraLai   = "BiTraLai"
+	TrangThaiHoSoDaTiepNhan = "DaTiepNhan"
+	TrangThaiHoSoDangXuLy   = "DangXuLy"
+	TrangThaiHoSoDaDuyet    = "DaDuyet"
+)
 
 func (s *hoSoService) CreateHoSo(ctx context.Context, req *dto.CreateHoSoRequest) (*models.HoSo, error) {
 	generatedMaHoSo := fmt.Sprintf("HS-%s", time.Now().Format("20060102-150405"))
@@ -355,4 +366,57 @@ func (s *hoSoService) UpdateHoSo(ctx context.Context, hoSoID uuid.UUID, req *dto
 	}
 
 	return hoSo, nil
+}
+
+func (s *hoSoService) DeleteHoSo(ctx context.Context, hoSoID uuid.UUID) error {
+	// 1. Lấy thông tin hồ sơ (để kiểm tra trạng thái)
+	hoSo, err := s.hosoRepo.GetHoSoByID(ctx, s.db, hoSoID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return ErrHoSoKhongTimThay
+		}
+		return fmt.Errorf("lỗi khi tìm hồ sơ: %w", err)
+	}
+
+	// 2. Logic nghiệp vụ: Chỉ cho phép xóa hồ sơ "MoiTao" hoặc "BiTraLai"
+	if hoSo.TrangThaiHoSo != TrangThaiHoSoMoiTao && hoSo.TrangThaiHoSo != TrangThaiHoSoBiTraLai {
+		return ErrHoSoDangXuLy
+	}
+
+	// 3. Lấy danh sách tất cả file vật lý (để xóa sau)
+	filePaths, err := s.tailieuRepo.ListFilePathsByHoSoID(ctx, s.db, hoSoID)
+	if err != nil {
+		return fmt.Errorf("lỗi khi lấy danh sách file: %w", err)
+	}
+
+	// 4. Xóa bản ghi CSDL (CSDL sẽ tự động xóa 'ho_so_tai_lieu' và 'tai_lieu'
+	// do đã cài đặt ON DELETE CASCADE)
+	if err := s.hosoRepo.DeleteHoSo(ctx, s.db, hoSoID); err != nil {
+		// Bắt lỗi nếu hồ sơ đã được cấp giấy phép
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23503" { // foreign_key_violation
+			if pgErr.ConstraintName == "giay_phep_ho_so_id_fkey" {
+				return ErrHoSoDaCoGiayPhepNOTDELETE
+			}
+		}
+		return fmt.Errorf("lỗi khi xóa hồ sơ khỏi CSDL: %w", err)
+	}
+
+	for _, dbPath := range filePaths {
+
+		osSpecificDbPath := filepath.FromSlash(dbPath)
+		physicalPath := filepath.Join("..", osSpecificDbPath)
+		if err := os.Remove(physicalPath); err != nil {
+			if !os.IsNotExist(err) {
+				fmt.Printf("Cảnh báo: Không thể xóa file %s: %v\n", physicalPath, err)
+			}
+		}
+	}
+
+	hoSoDir := filepath.Join("..", "uploads", "ho_so", hoSoID.String())
+	if err := os.RemoveAll(hoSoDir); err != nil {
+		fmt.Printf("Cảnh báo: Không thể xóa thư mục %s: %v\n", hoSoDir, err)
+	}
+
+	return nil
 }

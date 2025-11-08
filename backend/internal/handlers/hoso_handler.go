@@ -33,6 +33,7 @@ func (h *HoSoHandler) RegisterRoutes(router *gin.RouterGroup) {
 		hoSoGroup.GET("/:id", h.GetHoSoDetails)
 		hoSoGroup.PUT("/:id", h.UpdateHoSo)
 		hoSoGroup.GET("", h.ListHoSo)
+		hoSoGroup.DELETE("/:id", h.DeleteHoSo)
 
 	}
 	taiLieuGroup := router.Group("/tai-lieu")
@@ -329,4 +330,39 @@ func (h *HoSoHandler) UpdateHoSo(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": details})
+}
+
+func (h *HoSoHandler) DeleteHoSo(c *gin.Context) {
+	// 1. Lấy ID
+	idStr := c.Param("id")
+	hoSoID, err := uuid.FromString(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID hồ sơ không hợp lệ"})
+		return
+	}
+
+	// 2. Gọi Service
+	err = h.hosoService.DeleteHoSo(c.Request.Context(), hoSoID)
+	if err != nil {
+		// 3. Xử lý lỗi nghiệp vụ
+		if errors.Is(err, service.ErrHoSoKhongTimThay) {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		if errors.Is(err, service.ErrHoSoDaCoGiayPhepNOTDELETE) {
+			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+			return
+		}
+		if errors.Is(err, service.ErrHoSoDangXuLy) {
+			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Lỗi 500
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lỗi máy chủ khi xóa hồ sơ", "details": err.Error()})
+		return
+	}
+
+	// 4. Trả về thành công
+	c.JSON(http.StatusOK, gin.H{"message": "Đã xóa hồ sơ và các tài liệu liên quan thành công"})
 }

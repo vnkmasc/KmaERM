@@ -15,6 +15,7 @@ type HoSoRepository interface {
 	GetHoSoByID(ctx context.Context, db *gorm.DB, hoSoID uuid.UUID) (*models.HoSo, error)
 	UpdateHoSo(ctx context.Context, db *gorm.DB, hoSo *models.HoSo) error
 	ListHoSo(ctx context.Context, db *gorm.DB, doanhNghiepID uuid.UUID, params *dto.HoSoSearchParams, page int, pageSize int) ([]models.HoSo, int64, error)
+	DeleteHoSo(ctx context.Context, db *gorm.DB, hoSoID uuid.UUID) error
 }
 
 type hoSoRepo struct {
@@ -130,4 +131,9 @@ func (r *hoSoRepo) GetHoSoByID(ctx context.Context, db *gorm.DB, hoSoID uuid.UUI
 
 func (r *hoSoRepo) UpdateHoSo(ctx context.Context, db *gorm.DB, hoSo *models.HoSo) error {
 	return db.WithContext(ctx).Save(hoSo).Error
+}
+
+func (r *hoSoRepo) DeleteHoSo(ctx context.Context, db *gorm.DB, hoSoID uuid.UUID) error {
+
+	return db.WithContext(ctx).Delete(&models.HoSo{}, hoSoID).Error
 }

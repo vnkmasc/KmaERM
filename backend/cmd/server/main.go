@@ -81,7 +81,7 @@ func main() {
 	//Service
 	dnService := service.NewDoanhNghiepService(dnRepo)
 	hosoService := service.NewHoSoService(gormDB, hosoRepo, tailieuRepo)
-	gpService := service.NewGiayPhepService(gormDB, gpRepo, hosoRepo)
+	gpService := service.NewGiayPhepService(gormDB, gpRepo, hosoRepo, fabricClient)
 
 	//Handler
 	dnHandler := handler.NewDoanhNghiepHandler(dnService)

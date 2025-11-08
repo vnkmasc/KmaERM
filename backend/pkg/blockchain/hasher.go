@@ -6,30 +6,20 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 )
 
 // CalculateDataHash (Tính h1)
 // Nhận vào nhiều chuỗi (ví dụ: số giấy phép, ngày hiệu lực, ...),
 // nối chúng lại, băm (hash) và trả về chuỗi hex.
 func CalculateDataHash(data ...string) (string, error) {
-	// 1. Nối tất cả dữ liệu lại thành một chuỗi duy nhất
-	// Dùng một ký tự đặc biệt (ví dụ: |) để phân tách
-	// giúp tránh "collisions" (ví dụ: "ab"+"c" giống "a"+"bc")
-	combinedData := strings.Join(data, "|")
-
-	// 2. Băm dữ liệu bằng SHA-256
 	hasher := sha256.New()
-	_, err := hasher.Write([]byte(combinedData))
-	if err != nil {
-		return "", fmt.Errorf("lỗi khi băm dữ liệu: %w", err)
+	for _, s := range data {
+		if _, err := hasher.Write([]byte(s)); err != nil {
+			return "", fmt.Errorf("lỗi hash dữ liệu: %w", err)
+		}
 	}
 	hashBytes := hasher.Sum(nil)
-
-	// 3. Chuyển đổi sang chuỗi Hex
-	hashString := hex.EncodeToString(hashBytes)
-
-	return hashString, nil
+	return hex.EncodeToString(hashBytes), nil
 }
 
 func CalculateFileHash(filePath string) (string, error) {

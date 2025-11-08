@@ -79,6 +79,8 @@ CREATE TABLE giay_phep (
     file_duong_dan TEXT NULL,
     h1_hash TEXT NULL,
     h2_hash TEXT NULL,
+    trang_thai_blockchain VARCHAR(100) NULL DEFAULT 'ChuaDongBo',
+
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

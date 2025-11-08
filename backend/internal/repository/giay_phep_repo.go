@@ -15,6 +15,7 @@ type GiayPhepRepository interface {
 	DeleteGiayPhep(ctx context.Context, db *gorm.DB, giayPhepID uuid.UUID) error
 	GetGiayPhepByID(ctx context.Context, db *gorm.DB, giayPhepID uuid.UUID) (*models.GiayPhep, error)
 	GetGiayPhepByHoSoID(ctx context.Context, db *gorm.DB, hoSoID uuid.UUID) (*models.GiayPhep, error)
+	CheckHoSoExists(ctx context.Context, db *gorm.DB, hoSoID uuid.UUID) (bool, error)
 	ListGiayPhep(
 		ctx context.Context,
 		db *gorm.DB,
@@ -130,4 +131,14 @@ func (r *giayPhepRepo) ListGiayPhep(
 	}
 
 	return giayPheps, total, nil
+}
+
+func (r *giayPhepRepo) CheckHoSoExists(ctx context.Context, db *gorm.DB, hoSoID uuid.UUID) (bool, error) {
+	var count int64
+	// Chỉ kiểm tra bảng 'giay_phep', không cần 'ho_so'
+	err := db.WithContext(ctx).Model(&models.GiayPhep{}).Where("ho_so_id = ?", hoSoID).Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }

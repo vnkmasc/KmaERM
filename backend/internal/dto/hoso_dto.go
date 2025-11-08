@@ -44,6 +44,7 @@ type GroupedLoaiTaiLieuResponse struct {
 type HoSoDetailsResponse struct {
 	ID                 uuid.UUID `json:"id"`
 	DoanhNghiepID      uuid.UUID `json:"doanh_nghiep_id"`
+	TenDoanhnghiepVI   string    `json:"ten_doanh_nghiep_vi"`
 	MaHoSo             string    `json:"ma_ho_so"`
 	LoaiThuTuc         string    `json:"loai_thu_tuc"`
 	NgayDangKy         time.Time `json:"ngay_dang_ky"`
@@ -71,6 +72,7 @@ func ToHoSoDetailsResponse(hoSo *models.HoSo) HoSoDetailsResponse {
 	response := HoSoDetailsResponse{
 		ID:                 hoSo.ID,
 		DoanhNghiepID:      hoSo.DoanhNghiepID,
+		TenDoanhnghiepVI:   hoSo.DoanhNghiep.TenDoanhNghiepVI,
 		MaHoSo:             hoSo.MaHoSo,
 		LoaiThuTuc:         hoSo.LoaiThuTuc,
 		NgayDangKy:         hoSo.NgayDangKy,

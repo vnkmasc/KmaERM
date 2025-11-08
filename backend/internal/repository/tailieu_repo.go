@@ -15,6 +15,8 @@ type TaiLieuRepository interface {
 	ListLoaiTaiLieu(ctx context.Context, db *gorm.DB, tenTaiLieu []string) ([]models.LoaiTaiLieu, error)
 	GetTaiLieuByID(ctx context.Context, db *gorm.DB, taiLieuID uuid.UUID) (*models.TaiLieu, error)
 	DeleteTaiLieu(ctx context.Context, db *gorm.DB, taiLieuID uuid.UUID) error
+
+	ListFilePathsByHoSoID(ctx context.Context, db *gorm.DB, hoSoID uuid.UUID) ([]string, error)
 }
 
 type taiLieuRepo struct{}
@@ -26,12 +28,10 @@ func (r *taiLieuRepo) ListLoaiTaiLieu(ctx context.Context, db *gorm.DB, tenTaiLi
 	var loaiTaiLieus []models.LoaiTaiLieu
 	query := db.WithContext(ctx).Model(&models.LoaiTaiLieu{})
 
-	// Nếu có danh sách tên, lọc theo tên
 	if len(tenTaiLieu) > 0 {
 		query = query.Where("ten IN ?", tenTaiLieu)
 	}
 
-	// Sắp xếp theo tên
 	err := query.Order("ten ASC").Find(&loaiTaiLieus).Error
 	if err != nil {
 		return nil, err
@@ -60,4 +60,17 @@ func (r *taiLieuRepo) GetTaiLieuByID(ctx context.Context, db *gorm.DB, taiLieuID
 
 func (r *taiLieuRepo) DeleteTaiLieu(ctx context.Context, db *gorm.DB, taiLieuID uuid.UUID) error {
 	return db.WithContext(ctx).Delete(&models.TaiLieu{}, taiLieuID).Error
+}
+func (r *taiLieuRepo) ListFilePathsByHoSoID(ctx context.Context, db *gorm.DB, hoSoID uuid.UUID) ([]string, error) {
+	var paths []string
+
+	err := db.WithContext(ctx).Model(&models.TaiLieu{}).
+		Joins("JOIN ho_so_tai_lieu ON ho_so_tai_lieu.id = tai_lieu.ho_so_tai_lieu_id").
+		Where("ho_so_tai_lieu.ho_so_id = ?", hoSoID).
+		Pluck("duong_dan", &paths).Error
+
+	if err != nil {
+		return nil, err
+	}
+	return paths, nil
 }

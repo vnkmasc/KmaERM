@@ -19,8 +19,9 @@ type GiayPhep struct {
 
 	FileDuongDan *string `json:"file_duong_dan,omitempty"`
 
-	H1Hash *string `json:"h1_hash,omitempty"`
-	H2Hash *string `json:"h2_hash,omitempty"`
+	H1Hash              *string `json:"h1_hash,omitempty"`
+	H2Hash              *string `json:"h2_hash,omitempty"`
+	TrangThaiBlockchain *string `gorm:"default:'ChuaDongBo'" json:"trang_thai_blockchain,omitempty"`
 
 	HoSo HoSo `gorm:"foreignKey:HoSoID" json:"ho_so"`
 }

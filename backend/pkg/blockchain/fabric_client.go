@@ -23,7 +23,7 @@ type FabricConfig struct {
 func NewFabricConfigFromEnv() *FabricConfig {
 	return &FabricConfig{
 		ChannelName:   getEnv("FABRIC_CHANNEL", "mychannel"),
-		ChaincodeName: getEnv("FABRIC_CHAINCODE", "certificate"),
+		ChaincodeName: getEnv("FABRIC_CHAINCODE", "licensecc"),
 		WalletPath:    getEnv("FABRIC_WALLET_PATH", "./wallet"),
 		CCPPath:       getEnv("FABRIC_CCP_PATH", "./connection.yaml"),
 		Identity:      getEnv("FABRIC_IDENTITY", "admin"),
@@ -103,4 +103,43 @@ func NewFabricClient(cfg *FabricConfig) (*FabricClient, error) {
 		cfg:      cfg,
 		contract: contract,
 	}, nil
+}
+
+func (fc *FabricClient) Contract() *gateway.Contract {
+	return fc.contract
+}
+
+// SubmitTransaction gửi một giao dịch để GHI dữ liệu lên ledger
+// (Dùng cho Create, Update, Upload h2)
+func (fc *FabricClient) SubmitTransaction(funcName string, args ...string) ([]byte, error) {
+	if fc.contract == nil {
+		return nil, fmt.Errorf("fabric contract chưa được khởi tạo (đang chạy ở chế độ không blockchain?)")
+	}
+
+	log.Printf("FABRIC SUBMIT: %s, Args: %v\n", funcName, args)
+
+	// SubmitTransaction sẽ gửi yêu cầu đến các peer, chờ endorsement,
+	// và gửi kết quả đã endorse đến orderer để đưa vào block.
+	result, err := fc.contract.SubmitTransaction(funcName, args...)
+	if err != nil {
+		return nil, fmt.Errorf("lỗi khi submit transaction %s: %w", funcName, err)
+	}
+	return result, nil
+}
+
+// EvaluateTransaction gửi một giao dịch để ĐỌC dữ liệu từ ledger
+// (Dùng để Query, Get)
+func (fc *FabricClient) EvaluateTransaction(funcName string, args ...string) ([]byte, error) {
+	if fc.contract == nil {
+		return nil, fmt.Errorf("fabric contract chưa được khởi tạo")
+	}
+
+	log.Printf("FABRIC EVALUATE: %s, Args: %v\n", funcName, args)
+
+	// EvaluateTransaction nhanh hơn Submit vì nó chỉ query 1 peer
+	result, err := fc.contract.EvaluateTransaction(funcName, args...)
+	if err != nil {
+		return nil, fmt.Errorf("lỗi khi evaluate transaction %s: %w", funcName, err)
+	}
+	return result, nil
 }
