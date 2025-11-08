@@ -45,7 +45,7 @@ const DocumentItem: React.FC<Props> = (props) => {
         arg: {
           id: string
           mode: 'download' | 'new-tab' | 'view'
-          name?: string
+          fileName?: string
         }
       }
     ) => {
@@ -61,7 +61,7 @@ const DocumentItem: React.FC<Props> = (props) => {
         case 'download':
           const link = document.createElement('a')
           link.href = iframUrl
-          link.download = arg.name || 'document.pdf'
+          link.download = arg.fileName || 'document.pdf'
           link.click()
           break
         case 'new-tab':
@@ -156,7 +156,9 @@ const DocumentItem: React.FC<Props> = (props) => {
                 <Button
                   size={props.isOnDetailPage ? 'default' : 'icon'}
                   variant={'outline'}
-                  onClick={() => mutateViewDossierDocument.trigger({ id: file.id, mode: 'download', name: file.title })}
+                  onClick={() =>
+                    mutateViewDossierDocument.trigger({ id: file.id, mode: 'download', fileName: file.title })
+                  }
                 >
                   <DownloadIcon />
                   {props.isOnDetailPage && <span className='hidden md:block'>Tải xuống</span>}

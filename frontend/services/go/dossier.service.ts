@@ -3,6 +3,7 @@ import goService from '.'
 import { PAGE_SIZE } from '@/constants/common'
 import { formatDossier } from '@/lib/utils/format-api'
 import { IDossier, IDossierDialogData } from '@/types/dossier'
+import { IOption } from '@/types/form-field'
 
 export default class DossierService {
   static async searchDossiers(params: Record<string, any>) {
@@ -14,6 +15,18 @@ export default class DossierService {
       page: res.page,
       totalPage: Math.ceil(res.total / res.page_size)
     }
+  }
+
+  static async getAllDossiersOfBusiness(businessId: string) {
+    const res = await goService(`/ho-so` + queryString({ doanh_nghiep_id: businessId, limit: 100 }))
+
+    return res.data.map(
+      (item: any) =>
+        ({
+          value: item.id,
+          label: item.ma_ho_so
+        }) as IOption
+    )
   }
 
   static async createDossier(data: IDossierDialogData, businessId: string) {

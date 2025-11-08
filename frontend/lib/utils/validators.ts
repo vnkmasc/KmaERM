@@ -66,3 +66,5 @@ export const validateCommonName = z
     message: 'Tên không được bắt đầu/kết thúc bằng khoảng trắng'
   })
   .or(z.literal(''))
+
+export const validateNoEmpty = z.string().trim().nonempty({ message: 'Trường này không được để trống' })

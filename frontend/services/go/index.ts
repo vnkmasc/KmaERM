@@ -34,7 +34,10 @@ const goService = async <T = any>(url: string, options?: RequestInit, isBlob?: b
     }
 
     throw new Error(
-      data.error || (data.errors && JSON.stringify(data.errors)) || `HTTP ${res.status} ${res.statusText}`
+      (data.details && JSON.stringify(data.details).replace(/^"|"$/g, '')) ||
+        data.error ||
+        (data.errors && JSON.stringify(data.errors).replace(/^"|"$/g, '')) ||
+        `HTTP ${res.status} ${res.statusText}`
     )
   }
 

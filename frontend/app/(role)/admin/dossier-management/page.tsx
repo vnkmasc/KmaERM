@@ -17,7 +17,7 @@ import { parseDateInputToISO, searchParamsToObject, showNotification } from '@/l
 import BusinessService from '@/services/go/business.service'
 import DossierService from '@/services/go/dossier.service'
 import { IDossierSearchParams } from '@/types/dossier'
-import { LinkIcon, PencilIcon, PlusIcon, TrashIcon, UploadIcon } from 'lucide-react'
+import { FileIcon, LinkIcon, PencilIcon, PlusIcon, TrashIcon } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
@@ -25,6 +25,7 @@ import useSWR from 'swr'
 import useSWRMutation from 'swr/mutation'
 
 const DossierManagementPage = () => {
+  // Sử dụng search params khiến cho default value của select không bị lỗi
   const searchParams = useSearchParams()
   const initialParams = useMemo(() => searchParamsToObject(searchParams), [searchParams])
   const defaultFilter = {
@@ -34,6 +35,8 @@ const DossierManagementPage = () => {
   const [filter, setFilter] = useState<IDossierSearchParams>(defaultFilter)
   const [idDetail, setIdDetail] = useState<string | undefined | null>(undefined)
   const [idDetailForUploadDocument, setIdDetailForUploadDocument] = useState<string | undefined>(undefined)
+
+  const queryBusinessDetail = useSWR(filter.businessId, () => BusinessService.getBusinessById(filter.businessId!))
 
   const renderRangeDate = (dateType: string | undefined, from: string | undefined, to: string | undefined) => {
     if (!dateType) return {}
@@ -110,7 +113,7 @@ const DossierManagementPage = () => {
             key='add-dossier'
             onClick={() => {
               if (!filter.businessId) {
-                showNotification('warning', 'Vui lòng chọn doanh nghiệp ở phần tìm kiếm để tạo hồ sơ')
+                showNotification('info', 'Vui lòng chọn doanh nghiệp ở phần tìm kiếm để tạo hồ sơ')
                 return
               }
               setIdDetail(null)
@@ -200,7 +203,9 @@ const DossierManagementPage = () => {
             header: 'Trạng thái',
             value: 'dossierStatus',
             render: (item) => (
-              <Badge variant={item.dossierStatus === 'MoiTao' ? 'outline' : 'default'}>{item.dossierStatus}</Badge>
+              <Badge variant={item.dossierStatus === 'MoiTao' ? 'outline' : 'default'}>
+                {DOSSIER_STATUS_OPTIONS.find((option) => option.value === item.dossierStatus)?.label}
+              </Badge>
             )
           },
           { header: 'Ngày đăng ký', value: 'issuedDate' },
@@ -212,7 +217,12 @@ const DossierManagementPage = () => {
             render: (item) => (
               <ButtonGroup>
                 <Link href={`/admin/business-management/${filter.businessId}`}>
-                  <Button size={'icon'} title='Xem chi tiết toàn bộ thông tin doanh nghiệp' className='rounded-r-none!'>
+                  <Button
+                    size={'icon'}
+                    title='Xem chi tiết toàn bộ thông tin doanh nghiệp'
+                    className='rounded-r-none!'
+                    variant={'secondary'}
+                  >
                     <LinkIcon />
                   </Button>
                 </Link>
@@ -226,11 +236,10 @@ const DossierManagementPage = () => {
                 </Button>
                 <Button
                   size='icon'
-                  variant={'secondary'}
-                  title='Thêm tài liệu vào hồ sơ'
+                  title='Xem danh sách tài liệu hồ sơ'
                   onClick={() => setIdDetailForUploadDocument(item.id)}
                 >
-                  <UploadIcon />
+                  <FileIcon />
                 </Button>
                 <DeleteAlertDialog
                   description={
@@ -263,6 +272,7 @@ const DossierManagementPage = () => {
         data={queryDossierDetail.data}
         refetch={querySearchDossiers.mutate}
         businessId={filter.businessId!}
+        businessName={queryBusinessDetail.data?.viName || ''}
       />
 
       <Dialog

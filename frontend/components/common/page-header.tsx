@@ -1,3 +1,4 @@
+import { ButtonGroup } from '../ui/button-group'
 import Back from './back'
 
 interface Props {
@@ -13,7 +14,7 @@ const PageHeader: React.FC<Props> = (props) => {
         {props.hasBackButton && <Back />}
         {props.title}
       </h2>
-      <div className='flex items-center gap-2'>{props.actions?.map((item) => item)}</div>
+      <ButtonGroup>{props.actions?.map((item) => item)}</ButtonGroup>
     </div>
   )
 }

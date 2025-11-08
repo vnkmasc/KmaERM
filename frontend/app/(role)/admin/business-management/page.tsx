@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { getInitialSearchParamsToObject, showNotification, windowOpenBlankBlob } from '@/lib/utils/common'
 import BusinessService from '@/services/go/business.service'
 import { IBusinessSearchParams, IUpdateBusinessSetup } from '@/types/business'
-import { EyeIcon, FileIcon, PencilIcon, PlusIcon, TrashIcon, UserRoundPen } from 'lucide-react'
+import { FileIcon, PencilIcon, PlusIcon, TrashIcon, UserRoundPen } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 import useSWR from 'swr'
@@ -130,11 +130,6 @@ const BusinessManagementPage = () => {
             value: 'action',
             render: (item) => (
               <ButtonGroup>
-                <Link href={`/admin/business-management/${item.id}`}>
-                  <Button size={'icon'} title='Xem chi tiết toàn bộ thông tin doanh nghiệp' className='rounded-r-none!'>
-                    <EyeIcon />
-                  </Button>
-                </Link>
                 <Button
                   variant='outline'
                   size='icon'

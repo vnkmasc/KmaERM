@@ -1,7 +1,7 @@
 import { clsx, type ClassValue } from 'clsx'
 import { ExternalToast, toast } from 'sonner'
 import { twMerge } from 'tailwind-merge'
-import { format, isBefore, parseISO } from 'date-fns'
+import { format, isAfter, isBefore, parseISO, startOfDay } from 'date-fns'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -113,8 +113,30 @@ export const windowOpenBlankBlob = (blob: Blob) => {
   }
 }
 
-export const compareDateIsBefore = (date1: string, date2: string): boolean => {
+/**
+ * Kiểm tra xem ngày thứ nhất có trước ngày thứ hai không
+ * @param date1 - Ngày thứ nhất (định dạng ISO string)
+ * @param date2 - Ngày thứ hai (định dạng ISO string)
+ * @returns true nếu date1 trước date2, ngược lại false
+ */
+export const isDateISOBefore = (date1: string, date2: string): boolean => {
   const date1Obj = parseISO(date1)
   const date2Obj = parseISO(date2)
   return isBefore(date1Obj, date2Obj)
+}
+
+export const isDateAfterNow = (dateStr: string, includeTime = false): boolean => {
+  try {
+    const date = parseISO(dateStr)
+    const now = new Date()
+
+    if (!includeTime) {
+      // Bỏ phần thời gian: so sánh theo ngày
+      return isAfter(startOfDay(date), startOfDay(now))
+    }
+
+    return isAfter(date, now)
+  } catch {
+    return false
+  }
 }
