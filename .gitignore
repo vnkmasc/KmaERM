@@ -1,0 +1,27 @@
+# Cấu hình Môi trường (Environment configuration)
+.env
+*.env.*
+
+
+
+# Tệp nhị phân và tệp thực thi Go (Go binaries and executables)
+*.exe
+*.dll
+*.so
+*.o
+*.a
+*.lib
+
+# Thư mục build, cache, và tạm thời (Build, cache, and temp directories)
+backend/tmp/
+backend/vendor/
+backend/keystore/
+backend/wallet/
+backend/config/credentials/
+backend/config/tls/
+backend/server.exe
+
+
+
+# Cấu hình air (Tùy chọn, thường an toàn để giữ nếu bạn dùng riêng)
+# .air.toml
