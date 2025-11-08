@@ -2,6 +2,7 @@
 
 import CustomField from '@/components/common/custom-field'
 import { Button } from '@/components/ui/button'
+import { ButtonGroup } from '@/components/ui/button-group'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { queryString } from '@/lib/utils/common'
 import { IZodCustomField } from '@/types/form-field'
@@ -71,24 +72,32 @@ const Filter: React.FC<Props> = (props) => {
       <CardHeader>
         <CardTitle className={`${!props.description && 'row-span-2 self-center'}`}>Tìm kiếm</CardTitle>
         {props.description && <CardDescription>{props.description}</CardDescription>}
-        <CardAction className='space-x-2'>
-          <Button variant={'secondary'} onClick={props.refetch}>
-            <RefreshCcw />
-            <span className='hidden md:block'>Làm mới</span>
-          </Button>
-          <Button variant='destructive' onClick={handleReset}>
-            <CircleXIcon />
-            <span className='hidden md:block'>Xóa bộ lọc</span>
-          </Button>
-          <Button onClick={form.handleSubmit(onSubmit)}>
-            <SearchIcon />
-            <span className='hidden md:block'>Tìm kiếm</span>
-          </Button>
+        <CardAction>
+          <ButtonGroup>
+            <Button variant={'secondary'} onClick={props.refetch}>
+              <RefreshCcw />
+              <span className='hidden md:block'>Làm mới</span>
+            </Button>
+            <Button variant='destructive' onClick={handleReset}>
+              <CircleXIcon />
+              <span className='hidden md:block'>Xóa bộ lọc</span>
+            </Button>
+            <Button onClick={form.handleSubmit(onSubmit)}>
+              <SearchIcon />
+              <span className='hidden md:block'>Tìm kiếm</span>
+            </Button>
+          </ButtonGroup>
         </CardAction>
       </CardHeader>
       <CardContent>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              form.handleSubmit(onSubmit)()
+            }
+          }}
           className='grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5'
         >
           {props.items.map((prop, index) => (

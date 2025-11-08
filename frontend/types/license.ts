@@ -21,3 +21,9 @@ export interface ILicenseSearchParams {
   expirationDateTo?: string
   page: number
 }
+
+export interface ILicenseTableData extends ILicense {
+  dossierCode: string
+  businessName: string
+  businessId: string
+}

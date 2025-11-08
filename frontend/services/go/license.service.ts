@@ -9,7 +9,7 @@ export default class LicenseService {
     const res = await goService('/giay-phep' + queryString({ ...params, limit: PAGE_SIZE }))
 
     return {
-      data: res.data.map((item: any) => formatLicense.dataGetted(item)),
+      data: res.data.map((item: any) => formatLicense.tableDataGetted(item)),
       limit: res.limit,
       page: res.page,
       totalPage: Math.ceil(res.total / res.limit)
@@ -20,6 +20,12 @@ export default class LicenseService {
     const res = await goService(`/giay-phep/${id}`)
 
     return formatLicense.dataGetted(res.data)
+  }
+
+  static async getLicenseByIdWithBusiness(id: string) {
+    const res = await goService(`/giay-phep/${id}`)
+
+    return formatLicense.tableDataGetted(res.data)
   }
 
   static async createLicense(data: ILicense) {
@@ -43,6 +49,35 @@ export default class LicenseService {
   static async deleteLicense(id: string) {
     const res = await goService(`/giay-phep/${id}`, {
       method: 'DELETE'
+    })
+
+    return res
+  }
+
+  static async uploadLicenseFile(id: string, file: FormData) {
+    const res = await goService(`/giay-phep/${id}/upload`, {
+      method: 'POST',
+      body: file
+    })
+
+    return res
+  }
+
+  static async getLicenseFile(id: string): Promise<Blob> {
+    const res = await goService(
+      `/giay-phep/${id}/view-file`,
+      {
+        method: 'GET'
+      },
+      true
+    )
+
+    return res
+  }
+
+  static async uploadBlockchainLicense(id: string) {
+    const res = await goService(`/giay-phep/blockchain/${id}`, {
+      method: 'POST'
     })
 
     return res

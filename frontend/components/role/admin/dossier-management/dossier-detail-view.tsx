@@ -26,6 +26,8 @@ import { Badge } from '@/components/ui/badge'
 import DocumentItem from './document-item'
 import { useState } from 'react'
 import InfoDossierDialog from './info-dossier-dialog'
+import { DOSSIER_STATUS_OPTIONS } from '@/constants/dossier'
+import { Separator } from '@/components/ui/separator'
 
 interface Props {
   id: string
@@ -115,7 +117,10 @@ const DossierDetailView: React.FC<Props> = (props) => {
             title: 'Trạng thái',
             value: (
               <Badge variant={queryDossierDetail.data?.dossierStatus === 'MoiTao' ? 'outline' : 'default'}>
-                {queryDossierDetail.data?.dossierStatus}
+                {
+                  DOSSIER_STATUS_OPTIONS.find((option) => option.value === queryDossierDetail.data?.dossierStatus)
+                    ?.label
+                }
               </Badge>
             )
           },
@@ -136,6 +141,7 @@ const DossierDetailView: React.FC<Props> = (props) => {
           }
         ]}
       />
+      <Separator className='my-2 md:my-4' />
       {queryDossierDetail.data && (
         <InfoDossierDialog
           idDetail={openInfoDossierDialog ? props.id : undefined}
@@ -143,6 +149,7 @@ const DossierDetailView: React.FC<Props> = (props) => {
           data={queryDossierDetail.data}
           refetch={queryDossierDetail.mutate}
           businessId={queryDossierDetail.data.businessId}
+          businessName={''}
         />
       )}
       <PageHeader title='Danh sách tài liệu hồ sơ' />

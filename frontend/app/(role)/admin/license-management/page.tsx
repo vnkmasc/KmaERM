@@ -6,15 +6,19 @@ import CustomTable from '@/components/role/admin/common/custom-table'
 import DeleteAlertDialog from '@/components/role/admin/common/delete-alert-dialog'
 import Filter from '@/components/role/admin/common/filter'
 import InfoLicenseDialog from '@/components/role/admin/license-management/info-license-dialog'
+import UploadBlockchainButton from '@/components/role/admin/license-management/upload-blockchain-button'
+import UploadLicense from '@/components/role/admin/license-management/upload-license'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ButtonGroup } from '@/components/ui/button-group'
 import { LICENSE_STATUS_OPTIONS, LICENSE_TYPE_OPTIONS } from '@/constants/license'
-import { parseDateInputToISO, searchParamsToObject, showNotification } from '@/lib/utils/common'
+import { parseDateInputToISO, searchParamsToObject, showNotification, windowOpenBlankBlob } from '@/lib/utils/common'
 import BusinessService from '@/services/go/business.service'
+import DossierService from '@/services/go/dossier.service'
 import LicenseService from '@/services/go/license.service'
 import { ILicenseSearchParams } from '@/types/license'
-import { PencilIcon, TrashIcon } from 'lucide-react'
+import { File, PencilIcon, PlusIcon, TrashIcon } from 'lucide-react'
+import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useMemo, useState } from 'react'
 import useSWR from 'swr'
@@ -32,7 +36,7 @@ const LicenseManagementPage: React.FC = () => {
   const [filter, setFilter] = useState<ILicenseSearchParams>(defaultFilter)
   const [idDetail, setIdDetail] = useState<string | undefined | null>(undefined)
 
-  const querySearchLicenses = useSWR(filter.businessId ? 'license' + JSON.stringify(filter) : undefined, () =>
+  const querySearchLicenses = useSWR('license' + JSON.stringify(filter), () =>
     LicenseService.searchLicenses({
       doanh_nghiep_id: filter.businessId,
       ma_giay_phep: filter.licenseCode,
@@ -49,6 +53,10 @@ const LicenseManagementPage: React.FC = () => {
 
   const queryLicenseDetail = useSWR(idDetail, () => LicenseService.getLicenseById(idDetail as string))
 
+  const queryAllDossiersOfBusiness = useSWR(filter.businessId, () =>
+    DossierService.getAllDossiersOfBusiness(filter.businessId as string)
+  )
+
   const mutateDeleteLicense = useSWRMutation(
     'license-delete',
     (_, { arg }: { arg: string }) => LicenseService.deleteLicense(arg),
@@ -63,13 +71,46 @@ const LicenseManagementPage: React.FC = () => {
     }
   )
 
+  const mutateViewCertificate = useSWRMutation(
+    'license-file-view',
+    (_, { arg }: { arg: string }) => LicenseService.getLicenseFile(arg),
+    {
+      onSuccess: (data) => windowOpenBlankBlob(data),
+      onError: (error) => {
+        showNotification('error', error.message || 'Xem giấy phép thất bại')
+      }
+    }
+  )
+
   const handleChangePage = (page: number) => {
     setFilter({ ...filter, page })
   }
 
   return (
     <div className='space-y-2 md:space-y-4'>
-      <PageHeader title='Quản lý giấy phép' />
+      <PageHeader
+        title='Quản lý giấy phép'
+        actions={[
+          <Button
+            key='add-license'
+            onClick={() => {
+              if (!filter.businessId) {
+                showNotification('info', 'Vui lòng chọn doanh nghiệp ở phần tìm kiếm để tạo giấy phép')
+                return
+              }
+
+              if (queryAllDossiersOfBusiness.data?.length === 0) {
+                showNotification('info', 'Không có hồ sơ nào để tạo giấy phép')
+                return
+              }
+
+              setIdDetail(null)
+            }}
+          >
+            <PlusIcon /> <span className='hidden md:block'>Tạo mới</span>
+          </Button>
+        ]}
+      />
 
       <Filter
         onFilter={setFilter}
@@ -157,18 +198,28 @@ const LicenseManagementPage: React.FC = () => {
           {
             header: 'Mã giấy phép',
             value: 'licenseCode',
-            className: 'min-w-[150px] font-semibold text-blue-500 hover:underline'
+            className: 'min-w-[150px] font-semibold text-blue-500 hover:underline',
+            render: (item) => <Link href={`/admin/license-management/${item.id}`}>{item.licenseCode}</Link>
           },
           {
             header: 'Mã hồ sơ',
             value: 'dossierCode',
-            className: 'min-w-[150px] font-semibold text-blue-500 hover:underline'
+            className: 'min-w-[150px] font-semibold text-blue-500 hover:underline',
+            render: (item) => <Link href={`/admin/dossier-management/${item.dossierId}`}>{item.dossierCode}</Link>
+          },
+          {
+            header: 'Tên doanh nghiệp (VI)',
+            value: 'businessName',
+            className: 'min-w-[200px] font-semibold text-blue-500 hover:underline',
+            render: (item) => <Link href={`/admin/business-management/${item.businessId}`}>{item.businessName}</Link>
           },
           { header: 'Loại giấy phép', value: 'licenseType' },
           {
             header: 'Trạng thái giấy phép',
             value: 'licenseStatus',
-            render: (item) => <Badge>{item.licenseStatus}</Badge>
+            render: (item) => (
+              <Badge>{LICENSE_STATUS_OPTIONS.find((option) => option.value === item.licenseStatus)?.label}</Badge>
+            )
           },
           {
             header: 'Ngày hiệu lực',
@@ -193,6 +244,28 @@ const LicenseManagementPage: React.FC = () => {
                 <Button size='icon' variant='outline' onClick={() => setIdDetail(item.id)} title='Chỉnh sửa giấy phép'>
                   <PencilIcon />
                 </Button>
+                <UploadLicense isTableAction licenseId={item.id} refetch={querySearchLicenses.mutate} />
+                <Button
+                  size='icon'
+                  variant='outline'
+                  onClick={() => {
+                    if (item.filePath) {
+                      mutateViewCertificate.trigger(item.id)
+                    } else {
+                      showNotification('warning', 'Giấy phép chưa có tệp, vui lòng tải tệp lên')
+                    }
+                  }}
+                  title='Xem tệp giấy phép'
+                  isLoading={mutateViewCertificate.isMutating}
+                >
+                  <File />
+                </Button>
+                <UploadBlockchainButton
+                  isTableAction
+                  licenseId={item.id}
+                  refetch={querySearchLicenses.mutate}
+                  hasFile={item.filePath}
+                />
                 <DeleteAlertDialog
                   title='Xóa giấy phép'
                   onDelete={() => mutateDeleteLicense.trigger(item.id)}
@@ -202,7 +275,7 @@ const LicenseManagementPage: React.FC = () => {
                     </span>
                   }
                 >
-                  <Button variant='destructive' size='icon' title='Xóa hồ sơ'>
+                  <Button variant='destructive' size='icon' title='Xóa giấy phép'>
                     <TrashIcon />
                   </Button>
                 </DeleteAlertDialog>
@@ -222,6 +295,7 @@ const LicenseManagementPage: React.FC = () => {
         onClose={() => setIdDetail(undefined)}
         data={queryLicenseDetail.data}
         refetch={querySearchLicenses.mutate}
+        dossierCodes={queryAllDossiersOfBusiness.data ?? []}
       />
     </div>
   )

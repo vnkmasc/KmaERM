@@ -4,9 +4,11 @@ import { IDossier, IDossierDialogData } from '@/types/dossier'
 import useSWRMutation from 'swr/mutation'
 import DetailDialog from '../common/detail-dialog'
 import { DOSSIER_STATUS_OPTIONS, DOSSIER_TYPE_OPTIONS } from '@/constants/dossier'
-import BeforeContentInfoDialog from './before-content-info-dialog'
 import { format } from 'date-fns'
 import { validateNoEmpty } from '@/lib/utils/validators'
+import { CheckCircle2Icon } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Label } from '@/components/ui/label'
 
 interface Props {
   data: IDossier | undefined
@@ -75,11 +77,19 @@ const InfoDossierDialog: React.FC<Props> = (props) => {
       onClose={props.onClose}
       onSubmit={handleSubmitDialog}
       beforeContent={
-        <BeforeContentInfoDialog
-          businessName={props.businessName}
-          isUpdateMode={props.idDetail ? true : false}
-          dossierCode={props.data?.dossierCode}
-        />
+        <div className='space-y-2'>
+          <Alert variant={'success'}>
+            <CheckCircle2Icon />
+            <AlertTitle>Sẵn sàng {props.idDetail ? 'chỉnh sửa' : 'tạo'} hồ sơ cho doanh nghiệp</AlertTitle>
+            <AlertDescription>{props.businessName}</AlertDescription>
+          </Alert>
+          {props.idDetail && (
+            <div className='flex gap-2'>
+              <Label>Mã hồ sơ:</Label>
+              <span className='text-muted-foreground'>{props.data?.dossierCode}</span>
+            </div>
+          )}
+        </div>
       }
       defaultValues={
         props.data || {

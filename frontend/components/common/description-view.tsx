@@ -3,6 +3,7 @@ import { Alert, AlertDescription, AlertTitle } from '../ui/alert'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
 import { Skeleton } from '../ui/skeleton'
 import { cn } from '@/lib/utils/common'
+import { ButtonGroup } from '../ui/button-group'
 
 interface ViewItemProps {
   icon: React.ReactNode
@@ -45,7 +46,9 @@ const DecriptionView: React.FC<Props> = (props) => {
       <CardHeader>
         <CardTitle className={cn(!props.description && 'row-span-2 self-center')}>{props.title}</CardTitle>
         {props.description && <CardDescription>{props.description}</CardDescription>}
-        <CardAction className='flex gap-2'>{props.actions?.map((action) => action)}</CardAction>
+        <CardAction>
+          <ButtonGroup>{props.actions?.map((action) => action)}</ButtonGroup>
+        </CardAction>
       </CardHeader>
       <CardContent className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
         {props.loading ? (

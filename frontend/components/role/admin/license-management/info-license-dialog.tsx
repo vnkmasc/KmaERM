@@ -1,15 +1,21 @@
-import { showNotification } from '@/lib/utils/common'
+import { isDateISOBefore, showNotification } from '@/lib/utils/common'
 import LicenseService from '@/services/go/license.service'
 import { ILicense } from '@/types/license'
 import useSWRMutation from 'swr/mutation'
 import DetailDialog from '../common/detail-dialog'
 import { LICENSE_STATUS_OPTIONS, LICENSE_TYPE_OPTIONS } from '@/constants/license'
+import { validateNoEmpty } from '@/lib/utils/validators'
+import { IOption } from '@/types/form-field'
+import { Alert, AlertTitle } from '@/components/ui/alert'
+import { CheckCircle2Icon } from 'lucide-react'
+import { format } from 'date-fns'
 
 interface Props {
   data: ILicense | undefined
   idDetail: string | null | undefined
   onClose: () => void
   refetch?: () => void
+  dossierCodes: IOption[]
 }
 
 const InfoLicenseDialog: React.FC<Props> = (props) => {
@@ -44,6 +50,10 @@ const InfoLicenseDialog: React.FC<Props> = (props) => {
   )
 
   const handleSubmitDialog = (data: ILicense) => {
+    if (isDateISOBefore(data.expirationDate, data.effectiveDate)) {
+      showNotification('warning', 'Ngày hiệu lực phải trước ngày hết hạn')
+      return
+    }
     if (props.idDetail) {
       mutateUpdateLicense.trigger(data)
     } else {
@@ -59,18 +69,40 @@ const InfoLicenseDialog: React.FC<Props> = (props) => {
         props.onClose()
       }}
       onSubmit={(data) => handleSubmitDialog(data)}
-      defaultValues={props.data || {}}
+      defaultValues={
+        props.data || {
+          dossierId: '',
+          licenseType: '',
+          licenseCode: '',
+          licenseStatus: 'HieuLuc',
+          effectiveDate: format(new Date(), 'yyyy-MM-dd'),
+          expirationDate: ''
+        }
+      }
+      beforeContent={
+        <Alert variant={'success'}>
+          <CheckCircle2Icon />
+          <AlertTitle>Sẵn sàng {props.idDetail ? 'chỉnh sửa' : 'tạo'} giấy phép cho doanh nghiệp</AlertTitle>
+        </Alert>
+      }
       items={[
         {
-          name: 'licenseCode',
-          label: 'Mã giấy phép',
-          type: 'input',
+          name: 'dossierId',
+          label: 'Mã hồ sơ',
+          type: 'select',
           required: true,
-          placeholder: 'Nhập mã giấy phép'
+          placeholder: 'Chọn mã hồ sơ',
+          validator: validateNoEmpty,
+          setting: {
+            select: {
+              groups: [{ label: 'Mã hồ sơ', options: props.dossierCodes ?? [] }]
+            }
+          }
         },
         {
           name: 'licenseType',
           label: 'Loại giấy phép',
+          placeholder: 'Chọn loại giấy phép',
           type: 'select',
           required: true,
           setting: {
@@ -82,11 +114,20 @@ const InfoLicenseDialog: React.FC<Props> = (props) => {
                 }
               ]
             }
-          }
+          },
+          validator: validateNoEmpty
+        },
+        {
+          name: 'licenseCode',
+          label: 'Mã giấy phép',
+          type: 'input',
+          required: true,
+          placeholder: 'Nhập mã giấy phép'
         },
         {
           name: 'licenseStatus',
           label: 'Trạng thái giấy phép',
+          placeholder: 'Chọn trạng thái giấy phép',
           type: 'select',
           required: true,
           setting: {
@@ -98,7 +139,9 @@ const InfoLicenseDialog: React.FC<Props> = (props) => {
                 }
               ]
             }
-          }
+          },
+          disabled: props.idDetail ? false : true,
+          description: props.idDetail ? undefined : 'Không thể chỉnh sửa khi tạo giấy phép, mặc định là "Hiệu lực"'
         },
         {
           name: 'effectiveDate',

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { IZodCustomField } from '@/types/form-field'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect } from 'react'
+import { memo, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import z from 'zod'
 
@@ -42,23 +42,22 @@ const DetailDialog: React.FC<Props> = (props) => {
 
   // Reset form khi defaultValues thay đổi
   useEffect(() => {
-    if (props.mode !== undefined && props.defaultValues && Object.keys(props.defaultValues).length > 0) {
+    if (props.mode !== undefined) {
+      const updates: Record<string, any> = {}
       for (const key in props.defaultValues) {
-        form.setValue(key, props.defaultValues[key] ?? '')
+        updates[key] = props.defaultValues[key] ?? ''
       }
+      form.reset(updates)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.mode, props.defaultValues])
 
   useEffect(() => {
     if (props.mode === undefined) {
-      const timeoutId = setTimeout(() => {
-        form.reset()
-      }, 100)
-
-      return () => clearTimeout(timeoutId)
+      form.reset()
     }
-  }, [props.mode, form])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.mode])
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
@@ -72,9 +71,10 @@ const DetailDialog: React.FC<Props> = (props) => {
         <DialogHeader className='p-6 pb-0'>
           <DialogTitle>{props.title}</DialogTitle>
         </DialogHeader>
-        {props.beforeContent}
+
         <form onSubmit={form.handleSubmit(props.onSubmit)} className='flex flex-col'>
           <div className='grid max-h-[60vh] grid-cols-1 gap-4 overflow-y-auto px-6'>
+            {props.beforeContent}
             {props.items.map((prop, index) => (
               <CustomField {...prop} control={form.control} key={index} />
             ))}
@@ -95,4 +95,4 @@ const DetailDialog: React.FC<Props> = (props) => {
   )
 }
 
-export default DetailDialog
+export default memo(DetailDialog)

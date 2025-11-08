@@ -113,6 +113,12 @@ export const windowOpenBlankBlob = (blob: Blob) => {
   }
 }
 
+/**
+ * Kiểm tra xem ngày thứ nhất có trước ngày thứ hai không
+ * @param date1 - Ngày thứ nhất (định dạng ISO string)
+ * @param date2 - Ngày thứ hai (định dạng ISO string)
+ * @returns true nếu date1 trước date2, ngược lại false
+ */
 export const isDateISOBefore = (date1: string, date2: string): boolean => {
   const date1Obj = parseISO(date1)
   const date2Obj = parseISO(date2)

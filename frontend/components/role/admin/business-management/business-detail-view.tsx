@@ -33,7 +33,7 @@ import UploadBusinessCertificate from './upload-business-certificate'
 import useSWRMutation from 'swr/mutation'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import InfoBusinessDialog from './info-business-dialog'
 import UpdateBusinessCodeDialog from './update-business-code-dialog'
 import { parseDateISOForInput, showNotification } from '@/lib/utils/common'
@@ -51,9 +51,19 @@ const BusinessDetailView: React.FC<Props> = (props) => {
   const [openUpdateBusinessCodeDialog, setOpenUpdateBusinessCodeDialog] = useState(false)
   const router = useRouter()
 
-  const mutateViewCertificate = useSWRMutation(
+  const mutateActionCertificate = useSWRMutation(
     'business-certificate-view',
-    async (_, { arg }: { arg: 'download' | 'view' | 'new-tab' }) => {
+    async (
+      _,
+      {
+        arg
+      }: {
+        arg: {
+          mode: 'download' | 'new-tab'
+          fileName?: string
+        }
+      }
+    ) => {
       const res = await BusinessService.getRegistrationCertificate(props.id)
       const iframUrl = URL.createObjectURL(res)
 
@@ -61,21 +71,30 @@ const BusinessDetailView: React.FC<Props> = (props) => {
         URL.revokeObjectURL(iframUrl)
       }, 5000)
 
-      switch (arg) {
+      switch (arg.mode) {
         case 'download':
           const link = document.createElement('a')
           link.href = iframUrl
-          link.download = 'giay-chung-nhan-dang-ky-kinh-doanh.pdf'
+          link.download = arg.fileName || 'giay-chung-nhan-dang-ky-kinh-doanh.pdf'
           link.click()
           break
-        case 'view':
-          return iframUrl
         case 'new-tab':
           window.open(iframUrl, '_blank')
           break
-        default:
-          return iframUrl
       }
+    }
+  )
+
+  const queryCertificateFile = useSWR(
+    'business-certificate-file-' + props.id,
+    async () => {
+      const res = await BusinessService.getRegistrationCertificate(props.id)
+      const iframUrl = URL.createObjectURL(res)
+
+      return iframUrl
+    },
+    {
+      revalidateOnFocus: false
     }
   )
 
@@ -91,19 +110,8 @@ const BusinessDetailView: React.FC<Props> = (props) => {
 
   const refetchAll = () => {
     queryBusinessDetail.mutate()
-    mutateViewCertificate.trigger('view')
+    queryCertificateFile.mutate()
   }
-
-  useEffect(() => {
-    mutateViewCertificate.trigger('view')
-
-    return () => {
-      if (mutateViewCertificate.data) {
-        URL.revokeObjectURL(mutateViewCertificate.data)
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   return (
     <div className='space-y-2 md:space-y-4'>
@@ -194,13 +202,13 @@ const BusinessDetailView: React.FC<Props> = (props) => {
 
       <Separator className='my-2 md:my-4' />
 
-      {mutateViewCertificate.isMutating ? (
+      {mutateActionCertificate.isMutating ? (
         <Skeleton className='h-[300px] w-full md:h-[500px]' />
-      ) : mutateViewCertificate.error ? (
+      ) : mutateActionCertificate.error ? (
         <Alert variant='destructive' className='mx-auto max-w-[700px]'>
           <AlertCircle />
           <AlertTitle>Đã có lỗi khi tải giấy chứng nhận</AlertTitle>
-          <AlertDescription>{mutateViewCertificate.error.message}</AlertDescription>
+          <AlertDescription>{mutateActionCertificate.error.message}</AlertDescription>
         </Alert>
       ) : (
         <>
@@ -210,22 +218,30 @@ const BusinessDetailView: React.FC<Props> = (props) => {
               <UploadBusinessCertificate
                 key={'upload-business-certificate'}
                 businessId={props.id}
-                refetch={() => mutateViewCertificate.trigger('view')}
+                refetch={queryCertificateFile.mutate}
               />,
-              <Button key='download' onClick={() => mutateViewCertificate.trigger('download')}>
+              <Button
+                key='download'
+                onClick={() =>
+                  mutateActionCertificate.trigger({
+                    mode: 'download',
+                    fileName: queryBusinessDetail.data?.viName + ' - GCNDKDN.pdf'
+                  })
+                }
+              >
                 <DownloadIcon /> <span className='hidden md:block'>Tải xuống</span>
               </Button>,
               <Button
                 key='view-in-new-tab'
                 variant={'outline'}
-                onClick={() => mutateViewCertificate.trigger('new-tab')}
+                onClick={() => mutateActionCertificate.trigger({ mode: 'new-tab' })}
                 title='Xem giấy chứng nhận trong tab mới'
               >
                 <FileIcon /> <span className='hidden md:block'>Xem tệp</span>
               </Button>
             ]}
           />
-          <iframe src={mutateViewCertificate.data} className='h-[500px] w-full md:h-[700px]' />
+          <iframe src={queryCertificateFile.data} className='h-[500px] w-full md:h-[700px]' />
         </>
       )}
 

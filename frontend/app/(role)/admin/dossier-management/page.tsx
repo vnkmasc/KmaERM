@@ -113,7 +113,7 @@ const DossierManagementPage = () => {
             key='add-dossier'
             onClick={() => {
               if (!filter.businessId) {
-                showNotification('warning', 'Vui lòng chọn doanh nghiệp ở phần tìm kiếm để tạo hồ sơ')
+                showNotification('info', 'Vui lòng chọn doanh nghiệp ở phần tìm kiếm để tạo hồ sơ')
                 return
               }
               setIdDetail(null)
