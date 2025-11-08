@@ -110,3 +110,22 @@ type UpdateHoSoRequest struct {
 	SoGiayPhepTheoHoSo string    `json:"so_giay_phep_theo_ho_so,omitempty"`
 	TrangThaiHoSo      string    `json:"trang_thai_ho_so" binding:"required"`
 }
+
+type AssetOnBlockchain struct {
+	ID     string `json:"id"`
+	H1Hash string `json:"h1Hash"`
+	H2Hash string `json:"h2Hash"`
+}
+type VerifyGiayPhepResponse struct {
+	GiayPhepID string `json:"giay_phep_id"`
+
+	H1HashDB string `json:"h1_hash_db"`
+	H2HashDB string `json:"h2_hash_db"`
+
+	H1HashBC string `json:"h1_hash_bc"`
+	H2HashBC string `json:"h2_hash_bc"`
+
+	IsH1Matched bool   `json:"is_h1_matched"`
+	IsH2Matched bool   `json:"is_h2_matched"`
+	Message     string `json:"message"`
+}

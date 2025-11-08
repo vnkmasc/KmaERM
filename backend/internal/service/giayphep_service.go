@@ -2,12 +2,14 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -25,9 +27,10 @@ var (
 	ErrGiayPhepDaBiThuHoi   = errors.New("giấy phép này đã bị thu hồi hoặc hết hạn, không thể thao tác")
 	ErrGiayPhepDangHieuLuc  = errors.New("giấy phép đang có hiệu lực, không thể xóa")
 
-	ErrGiayPhepDaDongBo   = errors.New("giấy phép này đã được đồng bộ lên blockchain")
-	ErrGiayPhepChuaDuHash = errors.New("giấy phép thiếu h1 (hash dữ liệu) hoặc h2 (hash file)")
-	ErrBlockchainOffline  = errors.New("dịch vụ blockchain không khả dụng (chế độ offline)")
+	ErrGiayPhepDaDongBo       = errors.New("giấy phép này đã được đồng bộ lên blockchain")
+	ErrGiayPhepChuaDuHash     = errors.New("giấy phép thiếu h1 (hash dữ liệu) hoặc h2 (hash file)")
+	ErrBlockchainOffline      = errors.New("dịch vụ blockchain không khả dụng (chế độ offline)")
+	ErrAssetKhongTonTaiTrenBC = errors.New("asset (giấy phép) không tồn tại trên blockchain")
 )
 
 type GiayPhepService interface {
@@ -38,6 +41,7 @@ type GiayPhepService interface {
 	ListGiayPhep(ctx context.Context, doanhNghiepID uuid.UUID, params *dto.GiayPhepSearchParams, page int, pageSize int) (*dto.GiayPhepListResponse, error)
 	UploadGiayPhepFile(ctx context.Context, giayPhepID uuid.UUID, tempFilePath string, fileName string) (*dto.GiayPhepResponse, error)
 	PushToBlockchain(ctx context.Context, giayPhepID uuid.UUID) error
+	VerifyGiayPhep(ctx context.Context, giayPhepID uuid.UUID) (*dto.VerifyGiayPhepResponse, error)
 }
 
 type giayPhepService struct {
@@ -68,7 +72,6 @@ const (
 )
 
 func (s *giayPhepService) CreateGiayPhep(ctx context.Context, req *dto.CreateGiayPhepRequest) (*dto.GiayPhepResponse, error) {
-	// 1. Kiểm tra logic (Sửa: Dùng CheckHoSoExists)
 	exists, err := s.gpRepo.CheckHoSoExists(ctx, s.db, req.HoSoID)
 	if err != nil {
 		return nil, fmt.Errorf("lỗi khi kiểm tra hồ sơ: %w", err)
@@ -77,7 +80,6 @@ func (s *giayPhepService) CreateGiayPhep(ctx context.Context, req *dto.CreateGia
 		return nil, ErrHoSoDaCoGiayPhep
 	}
 
-	// 2. Tính h1 hash (Sửa: Xử lý 2 giá trị trả về)
 	h1Hash, err := blockchain.CalculateDataHash(
 		req.HoSoID.String(),
 		req.LoaiGiayPhep,
@@ -395,4 +397,58 @@ func (s *giayPhepService) PushToBlockchain(ctx context.Context, giayPhepID uuid.
 
 	log.Printf("✅ Đẩy toàn bộ (h1, h2) lên Fabric thành công cho Giấy phép: %s", giayPhepIDStr)
 	return nil
+}
+
+func (s *giayPhepService) VerifyGiayPhep(ctx context.Context, giayPhepID uuid.UUID) (*dto.VerifyGiayPhepResponse, error) {
+	giayPhepDB, err := s.gpRepo.GetGiayPhepByID(ctx, s.db, giayPhepID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrGiayPhepKhongTimThay
+		}
+		return nil, err
+	}
+
+	resp := &dto.VerifyGiayPhepResponse{
+		GiayPhepID: giayPhepID.String(),
+	}
+	if giayPhepDB.H1Hash != nil {
+		resp.H1HashDB = *giayPhepDB.H1Hash
+	}
+	if giayPhepDB.H2Hash != nil {
+		resp.H2HashDB = *giayPhepDB.H2Hash
+	}
+
+	if s.fabricClient == nil || s.fabricClient.Contract() == nil {
+		return nil, ErrBlockchainOffline
+	}
+
+	chaincodeFunc := "QueryLisence"
+	giayPhepIDStr := giayPhepID.String()
+
+	assetJSON, err := s.fabricClient.EvaluateTransaction(chaincodeFunc, giayPhepIDStr)
+	if err != nil {
+		if strings.Contains(err.Error(), "không tồn tại") {
+			return nil, ErrAssetKhongTonTaiTrenBC
+		}
+		return nil, fmt.Errorf("lỗi khi query Fabric: %w", err)
+	}
+
+	var assetBC dto.AssetOnBlockchain
+	if err := json.Unmarshal(assetJSON, &assetBC); err != nil {
+		return nil, fmt.Errorf("lỗi khi parse response từ Fabric: %w", err)
+	}
+
+	resp.H1HashBC = assetBC.H1Hash
+	resp.H2HashBC = assetBC.H2Hash
+
+	resp.IsH1Matched = (resp.H1HashDB == resp.H1HashBC)
+	resp.IsH2Matched = (resp.H2HashDB == resp.H2HashBC)
+
+	if resp.IsH1Matched && resp.IsH2Matched {
+		resp.Message = "Xác thực thành công! Dữ liệu CSDL khớp với Blockchain."
+	} else {
+		resp.Message = "XÁC THỰC THẤT BẠI! Dữ liệu CSDL KHÔNG khớp với Blockchain."
+	}
+
+	return resp, nil
 }

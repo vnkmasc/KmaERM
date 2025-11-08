@@ -37,6 +37,8 @@ func (h *GiayPhepHandler) RegisterRoutes(router *gin.RouterGroup) {
 		gpGroup.POST("/:id/upload", h.UploadGiayPhepFile)
 		gpGroup.GET("/:id/view-file", h.DownloadGiayPhepFile)
 		gpGroup.POST("/:id/push-blockchain", h.PushToBlockchain)
+		gpGroup.GET("/:id/verify", h.VerifyGiayPhep)
+
 	}
 
 }
@@ -355,4 +357,34 @@ func (h *GiayPhepHandler) PushToBlockchain(c *gin.Context) {
 
 	// 4. Trả về thành công
 	c.JSON(http.StatusOK, gin.H{"message": "Đã đẩy h1 và h2 lên blockchain thành công"})
+}
+
+func (h *GiayPhepHandler) VerifyGiayPhep(c *gin.Context) {
+	giayPhepID, err := uuid.FromString(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID giấy phép không hợp lệ"})
+		return
+	}
+
+	resp, err := h.gpService.VerifyGiayPhep(c.Request.Context(), giayPhepID)
+	if err != nil {
+		// 3. Xử lý lỗi nghiệp vụ
+		if errors.Is(err, service.ErrGiayPhepKhongTimThay) {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		if errors.Is(err, service.ErrAssetKhongTonTaiTrenBC) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Xác thực thất bại", "details": err.Error()})
+			return
+		}
+		if errors.Is(err, service.ErrBlockchainOffline) { // 503
+			c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Dịch vụ blockchain không sẵn sàng", "details": err.Error()})
+			return
+		}
+		// (Các lỗi khác: Unmarshal, lỗi Fabric chung... là lỗi 500)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lỗi máy chủ khi xác thực", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
 }
