@@ -446,6 +446,12 @@ func (s *giayPhepService) VerifyGiayPhep(ctx context.Context, giayPhepID uuid.UU
 
 	if resp.IsH1Matched && resp.IsH2Matched {
 		resp.Message = "Xác thực thành công! Dữ liệu CSDL khớp với Blockchain."
+		giayPhepDTO, err := s.mapGiayPhepToResponse(ctx, giayPhepDB)
+		if err != nil {
+			fmt.Printf("Cảnh báo: Lỗi khi map GiayPhepData: %v\n", err)
+		} else {
+			resp.GiayPhepData = giayPhepDTO
+		}
 	} else {
 		resp.Message = "XÁC THỰC THẤT BẠI! Dữ liệu CSDL KHÔNG khớp với Blockchain."
 	}
