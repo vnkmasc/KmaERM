@@ -1,6 +1,16 @@
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { cn, showNotification } from '@/lib/utils/common'
 import LicenseService from '@/services/go/license.service'
+import { AlertDialogAction, AlertDialogDescription } from '@/components/ui/alert-dialog'
 import { UploadIcon } from 'lucide-react'
 import useSWRMutation from 'swr/mutation'
 
@@ -9,6 +19,7 @@ interface Props {
   licenseId: string
   refetch?: () => void
   hasFile: boolean
+  licenseCode: string
 }
 
 const UploadBlockchainButton: React.FC<Props> = (props) => {
@@ -27,22 +38,32 @@ const UploadBlockchainButton: React.FC<Props> = (props) => {
   )
 
   return (
-    <Button
-      size={props.isTableAction ? 'icon' : 'default'}
-      title='Tải giấy phép lên blockchain'
-      isLoading={mutateUploadBlockchain.isMutating}
-      className={cn(props.isTableAction && 'rounded-none')}
-      onClick={() => {
-        if (props.hasFile) {
-          mutateUploadBlockchain.trigger()
-        } else {
-          showNotification('warning', 'Giấy phép chưa có tệp, vui lòng tải tệp lên')
-        }
-      }}
-    >
-      <UploadIcon />
-      {props.isTableAction ? null : <span className='hidden md:block'>Blockchain</span>}
-    </Button>
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button
+          size={props.isTableAction ? 'icon' : 'default'}
+          title='Tải giấy phép lên blockchain'
+          className={cn(props.isTableAction && 'rounded-none')}
+          isLoading={mutateUploadBlockchain.isMutating}
+        >
+          <UploadIcon />
+          {props.isTableAction ? null : <span className='hidden md:block'>Blockchain</span>}
+        </Button>
+      </AlertDialogTrigger>
+
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Đẩy giấy phép lên blockchain</AlertDialogTitle>
+          <AlertDialogDescription>
+            Bạn có chắc chắn muốn đẩy giấy phép <b>{props.licenseCode}</b> lên blockchain không?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Hủy bỏ</AlertDialogCancel>
+          <AlertDialogAction onClick={() => mutateUploadBlockchain.trigger()}>Xác nhận</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }
 

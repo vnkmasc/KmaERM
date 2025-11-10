@@ -36,8 +36,6 @@ const DossierManagementPage = () => {
   const [idDetail, setIdDetail] = useState<string | undefined | null>(undefined)
   const [idDetailForUploadDocument, setIdDetailForUploadDocument] = useState<string | undefined>(undefined)
 
-  const queryBusinessDetail = useSWR(filter.businessId, () => BusinessService.getBusinessById(filter.businessId!))
-
   const renderRangeDate = (dateType: string | undefined, from: string | undefined, to: string | undefined) => {
     if (!dateType) return {}
 
@@ -272,7 +270,7 @@ const DossierManagementPage = () => {
         data={queryDossierDetail.data}
         refetch={querySearchDossiers.mutate}
         businessId={filter.businessId!}
-        businessName={queryBusinessDetail.data?.viName || ''}
+        businessName={queryDossierDetail.data?.businessName || ''}
       />
 
       <Dialog

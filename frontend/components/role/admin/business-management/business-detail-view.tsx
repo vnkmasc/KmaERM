@@ -4,7 +4,6 @@ import PageHeader from '@/components/common/page-header'
 import DescriptionView from '@/components/common/description-view'
 import {
   ALargeSmall,
-  AlertCircle,
   Bold,
   Calendar,
   CaseSensitive,
@@ -25,14 +24,12 @@ import {
   UserRoundPen,
   UserStar
 } from 'lucide-react'
-import useSWR from 'swr'
+import useSWR, { mutate } from 'swr'
 import BusinessService from '@/services/go/business.service'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import UploadBusinessCertificate from './upload-business-certificate'
 import useSWRMutation from 'swr/mutation'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { useState } from 'react'
 import InfoBusinessDialog from './info-business-dialog'
 import UpdateBusinessCodeDialog from './update-business-code-dialog'
@@ -40,6 +37,7 @@ import { parseDateISOForInput, showNotification } from '@/lib/utils/common'
 import { useRouter } from 'next/navigation'
 import DeleteAlertDialog from '../common/delete-alert-dialog'
 import { Separator } from '@/components/ui/separator'
+import PdfView from '../common/pdf-view'
 
 interface Props {
   id: string
@@ -82,19 +80,11 @@ const BusinessDetailView: React.FC<Props> = (props) => {
           window.open(iframUrl, '_blank')
           break
       }
-    }
-  )
-
-  const queryCertificateFile = useSWR(
-    'business-certificate-file-' + props.id,
-    async () => {
-      const res = await BusinessService.getRegistrationCertificate(props.id)
-      const iframUrl = URL.createObjectURL(res)
-
-      return iframUrl
     },
     {
-      revalidateOnFocus: false
+      onError: (error) => {
+        showNotification('error', error.message || 'Thao tác với giấy chứng nhận thất bại')
+      }
     }
   )
 
@@ -110,7 +100,7 @@ const BusinessDetailView: React.FC<Props> = (props) => {
 
   const refetchAll = () => {
     queryBusinessDetail.mutate()
-    queryCertificateFile.mutate()
+    mutate('pdf-view-' + props.id)
   }
 
   return (
@@ -202,48 +192,49 @@ const BusinessDetailView: React.FC<Props> = (props) => {
 
       <Separator className='my-2 md:my-4' />
 
-      {mutateActionCertificate.isMutating ? (
-        <Skeleton className='h-[300px] w-full md:h-[500px]' />
-      ) : mutateActionCertificate.error ? (
-        <Alert variant='destructive' className='mx-auto max-w-[700px]'>
-          <AlertCircle />
-          <AlertTitle>Đã có lỗi khi tải giấy chứng nhận</AlertTitle>
-          <AlertDescription>{mutateActionCertificate.error.message}</AlertDescription>
-        </Alert>
-      ) : (
-        <>
-          <PageHeader
-            title='Giấy chứng nhận đăng ký kinh doanh'
-            actions={[
-              <UploadBusinessCertificate
-                key={'upload-business-certificate'}
-                businessId={props.id}
-                refetch={queryCertificateFile.mutate}
-              />,
-              <Button
-                key='download'
-                onClick={() =>
-                  mutateActionCertificate.trigger({
-                    mode: 'download',
-                    fileName: queryBusinessDetail.data?.viName + ' - GCNDKDN.pdf'
-                  })
-                }
-              >
-                <DownloadIcon /> <span className='hidden md:block'>Tải xuống</span>
-              </Button>,
-              <Button
-                key='view-in-new-tab'
-                variant={'outline'}
-                onClick={() => mutateActionCertificate.trigger({ mode: 'new-tab' })}
-                title='Xem giấy chứng nhận trong tab mới'
-              >
-                <FileIcon /> <span className='hidden md:block'>Xem tệp</span>
-              </Button>
-            ]}
-          />
-          <iframe src={queryCertificateFile.data} className='h-[500px] w-full md:h-[700px]' />
-        </>
-      )}
+      <PageHeader
+        title='Giấy chứng nhận đăng ký kinh doanh'
+        actions={[
+          <UploadBusinessCertificate
+            key={'upload-business-certificate'}
+            businessId={props.id}
+            refetch={() => mutate('pdf-view-' + props.id)}
+          />,
+          <Button
+            key='download'
+            onClick={() => {
+              if (!queryBusinessDetail.data?.certificateFilePath) {
+                showNotification('warning', 'Doanh nghiệp chưa có giấy chứng nhận')
+                return
+              }
+
+              mutateActionCertificate.trigger({
+                mode: 'download',
+                fileName: queryBusinessDetail.data?.viName + ' - GCNDKDN.pdf'
+              })
+            }}
+          >
+            <DownloadIcon /> <span className='hidden md:block'>Tải xuống</span>
+          </Button>,
+          <Button
+            key='view-in-new-tab'
+            variant={'outline'}
+            onClick={() => {
+              if (!queryBusinessDetail.data?.certificateFilePath) {
+                showNotification('warning', 'Doanh nghiệp chưa có giấy chứng nhận')
+                return
+              }
+
+              mutateActionCertificate.trigger({ mode: 'new-tab' })
+            }}
+            title='Xem giấy chứng nhận trong tab mới'
+          >
+            <FileIcon /> <span className='hidden md:block'>Xem tệp</span>
+          </Button>
+        ]}
+      />
+
+      <PdfView queryFn={() => BusinessService.getRegistrationCertificate(props.id)} idKey={props.id} />
 
       {queryBusinessDetail.data && (
         <>

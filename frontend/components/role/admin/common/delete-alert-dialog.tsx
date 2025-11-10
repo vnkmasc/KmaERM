@@ -29,7 +29,7 @@ const DeleteAlertDialog: React.FC<Props> = (props) => {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Hủy bỏ</AlertDialogCancel>
-          <AlertDialogAction onClick={() => props.onDelete()}>Xóa</AlertDialogAction>
+          <AlertDialogAction onClick={() => props.onDelete()}>Xác nhận</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

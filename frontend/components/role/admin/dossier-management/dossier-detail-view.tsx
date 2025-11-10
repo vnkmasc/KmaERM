@@ -103,7 +103,7 @@ const DossierDetailView: React.FC<Props> = (props) => {
                 href={`/admin/business-management/${queryDossierDetail.data?.businessId}`}
                 className='font-semibold text-blue-500 hover:underline'
               >
-                {queryDossierDetail.data?.businessId}
+                {queryDossierDetail.data?.businessName}
               </Link>
             )
           },
@@ -149,7 +149,7 @@ const DossierDetailView: React.FC<Props> = (props) => {
           data={queryDossierDetail.data}
           refetch={queryDossierDetail.mutate}
           businessId={queryDossierDetail.data.businessId}
-          businessName={''}
+          businessName={queryDossierDetail.data.businessName}
         />
       )}
       <PageHeader title='Danh sách tài liệu hồ sơ' />

@@ -74,6 +74,7 @@ export const formatDossier = {
     return {
       id: data.id,
       businessId: data.doanh_nghiep_id,
+      businessName: data.ten_doanh_nghiep_vi,
       dossierType: data.loai_thu_tuc,
       dossierCode: data.ma_ho_so,
       dossierStatus: data.trang_thai_ho_so,
@@ -130,7 +131,8 @@ export const formatLicense = {
       licenseCode: data.so_giay_phep,
       licenseStatus: data.trang_thai_giay_phep,
       effectiveDate: parseDateISOForInput(data.ngay_hieu_luc),
-      expirationDate: parseDateISOForInput(data.ngay_het_han)
+      expirationDate: parseDateISOForInput(data.ngay_het_han),
+      blockchainStatus: data.trang_thai_blockchain
     }
   },
   dataSent(data: ILicense): any {
@@ -155,7 +157,8 @@ export const formatLicense = {
       businessId: data.ho_so.doanh_nghiep.id,
       businessName: data.ho_so.doanh_nghiep.ten_doanh_nghiep_vi,
       dossierCode: data.ho_so.ma_ho_so,
-      filePath: data.file_duong_dan
+      filePath: data.file_duong_dan,
+      blockchainStatus: data.trang_thai_blockchain
     }
   }
 }

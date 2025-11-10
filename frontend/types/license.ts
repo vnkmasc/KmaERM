@@ -7,6 +7,7 @@ export interface ILicense {
   effectiveDate: string
   expirationDate: string
   filePath?: string
+  blockchainStatus?: string
 }
 
 export interface ILicenseSearchParams {

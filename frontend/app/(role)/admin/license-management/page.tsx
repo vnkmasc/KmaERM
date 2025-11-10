@@ -11,7 +11,7 @@ import UploadLicense from '@/components/role/admin/license-management/upload-lic
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ButtonGroup } from '@/components/ui/button-group'
-import { LICENSE_STATUS_OPTIONS, LICENSE_TYPE_OPTIONS } from '@/constants/license'
+import { BLOCKCHAIN_STATUS_OPTIONS, LICENSE_STATUS_OPTIONS, LICENSE_TYPE_OPTIONS } from '@/constants/license'
 import { parseDateInputToISO, searchParamsToObject, showNotification, windowOpenBlankBlob } from '@/lib/utils/common'
 import BusinessService from '@/services/go/business.service'
 import DossierService from '@/services/go/dossier.service'
@@ -237,6 +237,13 @@ const LicenseManagementPage: React.FC = () => {
             )
           },
           {
+            header: 'Trạng thái blockchain',
+            value: 'blockchainStatus',
+            render: (item) => (
+              <Badge>{BLOCKCHAIN_STATUS_OPTIONS.find((option) => option.value === item.blockchainStatus)?.label}</Badge>
+            )
+          },
+          {
             header: 'Hành động',
             value: 'action',
             render: (item) => (
@@ -265,6 +272,7 @@ const LicenseManagementPage: React.FC = () => {
                   licenseId={item.id}
                   refetch={querySearchLicenses.mutate}
                   hasFile={item.filePath}
+                  licenseCode={item.licenseCode}
                 />
                 <DeleteAlertDialog
                   title='Xóa giấy phép'

@@ -76,10 +76,21 @@ export default class LicenseService {
   }
 
   static async uploadBlockchainLicense(id: string) {
-    const res = await goService(`/giay-phep/blockchain/${id}`, {
+    const res = await goService(`/giay-phep/${id}/push-blockchain`, {
       method: 'POST'
     })
 
     return res
+  }
+
+  static async verifyBlockchainLicense(id: string) {
+    const res = await goService(`/giay-phep/${id}/verify`)
+
+    return {
+      message: res.message,
+      data: formatLicense.tableDataGetted(res.giay_phep_data),
+      dataMatched: res.is_h1_matched,
+      fileMatched: res.is_h2_matched
+    }
   }
 }

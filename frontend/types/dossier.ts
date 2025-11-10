@@ -8,20 +8,10 @@ export interface IDossierDocument {
   files?: { id: string; title: string; path: string }[]
 }
 
-export interface IDossierTableData {
-  id: string
-  businessId: string
-  dossierCode: string
-  dossierType: string
-  dossierStatus: string
-  issuedDate: string
-  receivedDate: string
-  expectedReturnDate: string
-}
-
 export interface IDossier {
   id: string
   businessId: string
+  businessName: string
   dossierCode: string
   dossierType: string
   dossierStatus: string
@@ -30,6 +20,8 @@ export interface IDossier {
   expectedReturnDate: string
   documents: IDossierDocument[]
 }
+
+export type IDossierTableData = Omit<IDossier, 'documents'>
 
 export interface IDossierDialogData {
   dossierType: string
