@@ -309,15 +309,16 @@ func (s *giayPhepService) UploadGiayPhepFile(
 
 func (s *giayPhepService) mapGiayPhepToResponse(ctx context.Context, giayPhep *models.GiayPhep) (*dto.GiayPhepResponse, error) {
 	resp := &dto.GiayPhepResponse{
-		ID:                giayPhep.ID,
-		HoSoID:            giayPhep.HoSoID,
-		LoaiGiayPhep:      giayPhep.LoaiGiayPhep,
-		SoGiayPhep:        giayPhep.SoGiayPhep,
-		NgayHieuLuc:       giayPhep.NgayHieuLuc,
-		NgayHetHan:        giayPhep.NgayHetHan,
-		TrangThaiGiayPhep: giayPhep.TrangThaiGiayPhep,
-		CreatedAt:         giayPhep.CreatedAt,
-		UpdatedAt:         giayPhep.UpdatedAt,
+		ID:                  giayPhep.ID,
+		HoSoID:              giayPhep.HoSoID,
+		LoaiGiayPhep:        giayPhep.LoaiGiayPhep,
+		SoGiayPhep:          giayPhep.SoGiayPhep,
+		NgayHieuLuc:         giayPhep.NgayHieuLuc,
+		NgayHetHan:          giayPhep.NgayHetHan,
+		TrangThaiGiayPhep:   giayPhep.TrangThaiGiayPhep,
+		TrangThaiBlockchain: *giayPhep.TrangThaiBlockchain,
+		CreatedAt:           giayPhep.CreatedAt,
+		UpdatedAt:           giayPhep.UpdatedAt,
 	}
 
 	if giayPhep.FileDuongDan != nil {

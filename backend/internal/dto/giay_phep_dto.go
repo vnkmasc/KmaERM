@@ -48,15 +48,16 @@ type GiayPhepListResponse struct {
 }
 
 type GiayPhepResponse struct {
-	ID                uuid.UUID `json:"id"`
-	HoSoID            uuid.UUID `json:"ho_so_id"`
-	LoaiGiayPhep      string    `json:"loai_giay_phep"`
-	SoGiayPhep        string    `json:"so_giay_phep"`
-	NgayHieuLuc       time.Time `json:"ngay_hieu_luc"`
-	NgayHetHan        time.Time `json:"ngay_het_han"`
-	TrangThaiGiayPhep string    `json:"trang_thai_giay_phep"`
-	CreatedAt         time.Time `json:"created_at"`
-	UpdatedAt         time.Time `json:"updated_at"`
+	ID                  uuid.UUID `json:"id"`
+	HoSoID              uuid.UUID `json:"ho_so_id"`
+	LoaiGiayPhep        string    `json:"loai_giay_phep"`
+	SoGiayPhep          string    `json:"so_giay_phep"`
+	NgayHieuLuc         time.Time `json:"ngay_hieu_luc"`
+	NgayHetHan          time.Time `json:"ngay_het_han"`
+	TrangThaiGiayPhep   string    `json:"trang_thai_giay_phep"`
+	TrangThaiBlockchain *string   `json:"trang_thai_blockchain"`
+	CreatedAt           time.Time `json:"created_at"`
+	UpdatedAt           time.Time `json:"updated_at"`
 
 	FileDuongDan *string `json:"file_duong_dan,omitempty"`
 	H1Hash       *string `json:"h1_hash,omitempty"`
