@@ -23,7 +23,7 @@ type FabricConfig struct {
 func NewFabricConfigFromEnv() *FabricConfig {
 	return &FabricConfig{
 		ChannelName:   getEnv("FABRIC_CHANNEL", "mychannel"),
-		ChaincodeName: getEnv("FABRIC_CHAINCODE", "licensecc"),
+		ChaincodeName: getEnv("FABRIC_CHAINCODE", "lisencecc"),
 		WalletPath:    getEnv("FABRIC_WALLET_PATH", "./wallet"),
 		CCPPath:       getEnv("FABRIC_CCP_PATH", "./connection.yaml"),
 		Identity:      getEnv("FABRIC_IDENTITY", "admin"),

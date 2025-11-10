@@ -225,26 +225,41 @@ func (s *giayPhepService) GetGiayPhepByID(ctx context.Context, giayPhepID uuid.U
 
 func (s *giayPhepService) ListGiayPhep(
 	ctx context.Context,
-	doanhNghiepID uuid.UUID, // <-- Thêm tham số này
+	doanhNghiepID uuid.UUID,
 	params *dto.GiayPhepSearchParams,
 	page int,
 	pageSize int,
 ) (*dto.GiayPhepListResponse, error) {
 
-	// 1. Gọi Repository (truyền doanhNghiepID vào)
+	// 1. Gọi Repository (Đã sửa để Preload HoSo)
 	giayPheps, total, err := s.gpRepo.ListGiayPhep(ctx, s.db, doanhNghiepID, params, page, pageSize)
 	if err != nil {
-		return nil, fmt.Errorf("lỗi khi lấy danh sách giấy phép: %w", err)
+		return nil, fmt.Errorf("lỗi khi lấy danh sách: %w", err)
 	}
 
-	// 2. Tạo DTO Response (Không đổi, vẫn dùng DTO đã làm phẳng)
+	// 2. Chuyển đổi (Map) Model -> DTO
+	// (Để đảm bảo HoSo được lồng đúng và nhất quán với GetByID)
+
+	dataDTO := make([]dto.GiayPhepResponse, len(giayPheps))
+
+	for i, gpModel := range giayPheps {
+		// Gọi hàm helper mapGiayPhepToResponse (đã có)
+		gpDTO, err := s.mapGiayPhepToResponse(ctx, &gpModel)
+		if err != nil {
+			// Lỗi này xảy ra nếu GiayPhep 1 có HoSo 1,
+			// nhưng HoSo 1 lại không tìm thấy DoanhNghiep (lỗi dữ liệu)
+			return nil, fmt.Errorf("lỗi khi map giấy phép %s: %w", gpModel.ID, err)
+		}
+		dataDTO[i] = *gpDTO
+	}
+
+	// 3. Tạo DTO Response (với dataDTO đã được map)
 	response := &dto.GiayPhepListResponse{
-		Data:     giayPheps,
+		Data:     dataDTO, // Sửa: Dùng dataDTO
 		Page:     page,
 		PageSize: pageSize,
 		Total:    total,
 	}
-
 	return response, nil
 }
 
@@ -316,7 +331,7 @@ func (s *giayPhepService) mapGiayPhepToResponse(ctx context.Context, giayPhep *m
 		NgayHieuLuc:         giayPhep.NgayHieuLuc,
 		NgayHetHan:          giayPhep.NgayHetHan,
 		TrangThaiGiayPhep:   giayPhep.TrangThaiGiayPhep,
-		TrangThaiBlockchain: *giayPhep.TrangThaiBlockchain,
+		TrangThaiBlockchain: giayPhep.TrangThaiBlockchain,
 		CreatedAt:           giayPhep.CreatedAt,
 		UpdatedAt:           giayPhep.UpdatedAt,
 	}

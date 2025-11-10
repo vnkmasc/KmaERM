@@ -41,10 +41,10 @@ type GiayPhepSearchParams struct {
 }
 
 type GiayPhepListResponse struct {
-	Data     []models.GiayPhep `json:"data"`
-	Page     int               `json:"page"`
-	PageSize int               `json:"page_size"`
-	Total    int64             `json:"total"`
+	Data     []GiayPhepResponse `json:"data"`
+	Page     int                `json:"page"`
+	PageSize int                `json:"page_size"`
+	Total    int64              `json:"total"`
 }
 
 type GiayPhepResponse struct {

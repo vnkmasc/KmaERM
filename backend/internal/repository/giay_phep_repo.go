@@ -125,7 +125,7 @@ func (r *giayPhepRepo) ListGiayPhep(
 
 	// 7. Thực thi
 	// PHẢI DÙNG Select("giay_phep.*") để tránh GORM bị lỗi "column is ambiguous"
-	err = query.Select("giay_phep.*").Find(&giayPheps).Error
+	err = query.Find(&giayPheps).Error
 	if err != nil {
 		return nil, 0, err
 	}
