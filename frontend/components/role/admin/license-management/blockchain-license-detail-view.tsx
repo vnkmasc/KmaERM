@@ -48,10 +48,18 @@ const BlockchainLicenseDetailView: React.FC<Props> = (props) => {
       />
 
       <Alert
-        variant={queryBlockchainLicenseVerify.data?.dataMatched ? 'success' : 'destructive'}
+        variant={
+          queryBlockchainLicenseVerify.data?.dataMatched && queryBlockchainLicenseVerify.data?.fileMatched
+            ? 'success'
+            : 'destructive'
+        }
         className='mx-auto max-w-[700px]'
       >
-        {queryBlockchainLicenseVerify.data?.dataMatched ? <CheckCircleIcon /> : <AlertCircleIcon />}
+        {queryBlockchainLicenseVerify.data?.dataMatched && queryBlockchainLicenseVerify.data?.fileMatched ? (
+          <CheckCircleIcon />
+        ) : (
+          <AlertCircleIcon />
+        )}
         <AlertTitle>Xác thực giấy phép trên blockchain</AlertTitle>
         <AlertDescription>{queryBlockchainLicenseVerify.data?.message}</AlertDescription>
       </Alert>
