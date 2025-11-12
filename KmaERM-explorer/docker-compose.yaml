@@ -41,7 +41,7 @@ services:
     volumes:
       - ./config.json:/opt/explorer/app/platform/fabric/config.json
       - ./connection-profile:/opt/explorer/app/platform/fabric/connection-profile
-      - /root/KmaERM/fabric-3.1.1/fabric-samples/test-network/organizations:/opt/explorer/crypto
+      - /root/KmaERM/fabric-samples/test-network/organizations:/opt/explorer/crypto
     ports:
       - 9090:9090
     depends_on:
