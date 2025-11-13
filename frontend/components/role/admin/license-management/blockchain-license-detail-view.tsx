@@ -19,7 +19,7 @@ import {
   Type
 } from 'lucide-react'
 import { Code } from 'lucide-react'
-import useSWR from 'swr'
+import useSWR, { mutate } from 'swr'
 import PdfView from '../common/pdf-view'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
@@ -34,13 +34,18 @@ const BlockchainLicenseDetailView: React.FC<Props> = (props) => {
     LicenseService.verifyBlockchainLicense(props.id)
   )
 
+  const refetchAll = () => {
+    queryBlockchainLicenseVerify.mutate()
+    mutate('pdf-view-blockchain' + props.id)
+  }
+
   return (
     <div className='space-y-2 md:space-y-4'>
       <PageHeader
         title='Chi tiết giấy phép blockchain'
         hasBackButton
         actions={[
-          <Button key='reload' variant='outline' onClick={() => queryBlockchainLicenseVerify.mutate()}>
+          <Button key='reload' variant='outline' onClick={refetchAll}>
             <RefreshCcw />
             <span className='hidden md:block'>Tải lại</span>
           </Button>

@@ -162,10 +162,13 @@ const BusinessDetailView: React.FC<Props> = (props) => {
           {
             icon: <RepeatIcon />,
             title: 'Số lần thay đổi MSDN',
-            value:
+            value: queryBusinessDetail.data?.businessCodeChangeCount ? (
               queryBusinessDetail.data?.businessCodeChangeCount +
               ' lần với ngày gần nhất ' +
               parseDateISOForInput(queryBusinessDetail.data?.businessCodeChangeDate || '')
+            ) : (
+              <span className='italic'>Chưa thay đổi</span>
+            )
           },
           {
             icon: <UserStar />,

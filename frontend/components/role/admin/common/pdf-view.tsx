@@ -18,25 +18,21 @@ const PdfView: React.FC<Props> = (props) => {
       const res = await props.queryFn()
       const blobUrl = URL.createObjectURL(res)
 
-      setTimeout(() => {
-        URL.revokeObjectURL(blobUrl)
-      }, 100)
-
       return blobUrl
     },
     {
-      revalidateOnFocus: false
+      revalidateOnFocus: false,
+      keepPreviousData: false // Không giữ dữ liệu cũ từ cache
     }
   )
 
   useEffect(() => {
     if (queryFile.data) {
       return () => {
-        URL.revokeObjectURL(queryFile.data as string)
+        URL.revokeObjectURL(queryFile.data as string) // Giải phóng bộ nhớ khi component unmount hoặc khi queryFile bị refetch
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [queryFile.data])
 
   return queryFile.isLoading ? (
     <Skeleton className='h-[300px] w-full md:h-[500px]' />
@@ -47,7 +43,8 @@ const PdfView: React.FC<Props> = (props) => {
       <AlertDescription>{queryFile.error.message}</AlertDescription>
     </Alert>
   ) : (
-    <iframe src={queryFile.data} className='h-[500px] w-full md:h-[700px]' />
+    // Thêm key prop để force unmount/remount khi URL thay đổi
+    <iframe key={queryFile.data} src={queryFile.data} className='h-[500px] w-full md:h-[700px]' />
   )
 }
 
