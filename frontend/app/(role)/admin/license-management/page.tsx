@@ -17,7 +17,7 @@ import BusinessService from '@/services/go/business.service'
 import DossierService from '@/services/go/dossier.service'
 import LicenseService from '@/services/go/license.service'
 import { ILicenseSearchParams } from '@/types/license'
-import { File, PencilIcon, PlusIcon, TrashIcon } from 'lucide-react'
+import { File, EditIcon, PlusIcon, TrashIcon } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useMemo, useState } from 'react'
@@ -249,7 +249,7 @@ const LicenseManagementPage: React.FC = () => {
             render: (item) => (
               <ButtonGroup>
                 <Button size='icon' variant='outline' onClick={() => setIdDetail(item.id)} title='Chỉnh sửa giấy phép'>
-                  <PencilIcon />
+                  <EditIcon />
                 </Button>
                 <UploadLicense isTableAction licenseId={item.id} refetch={querySearchLicenses.mutate} />
                 <Button

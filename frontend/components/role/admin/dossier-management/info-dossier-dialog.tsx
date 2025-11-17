@@ -55,11 +55,11 @@ const InfoDossierDialog: React.FC<Props> = (props) => {
       showNotification('warning', 'Ngày đăng ký không được lớn hơn ngày hiện tại')
       return
     }
-    if (isDateISOBefore(data.issuedDate, data.receivedDate)) {
+    if (!isDateISOBefore(data.issuedDate, data.receivedDate)) {
       showNotification('warning', 'Ngày đăng ký phải trước ngày tiếp nhận')
       return
     }
-    if (isDateISOBefore(data.receivedDate, data.expectedReturnDate)) {
+    if (!isDateISOBefore(data.receivedDate, data.expectedReturnDate)) {
       showNotification('warning', 'Ngày tiếp nhận phải trước ngày hẹn trả')
       return
     }

@@ -17,7 +17,7 @@ import { parseDateInputToISO, searchParamsToObject, showNotification } from '@/l
 import BusinessService from '@/services/go/business.service'
 import DossierService from '@/services/go/dossier.service'
 import { IDossierSearchParams } from '@/types/dossier'
-import { FileIcon, LinkIcon, PencilIcon, PlusIcon, TrashIcon } from 'lucide-react'
+import { FileIcon, LinkIcon, EditIcon, PlusIcon, TrashIcon } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
@@ -230,7 +230,7 @@ const DossierManagementPage = () => {
                   onClick={() => setIdDetail(item.id)}
                   title='Chỉnh sửa thông tin hồ sơ'
                 >
-                  <PencilIcon />
+                  <EditIcon />
                 </Button>
                 <Button
                   size='icon'

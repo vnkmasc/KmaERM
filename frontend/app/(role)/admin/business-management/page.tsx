@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { getInitialSearchParamsToObject, showNotification, windowOpenBlankBlob } from '@/lib/utils/common'
 import BusinessService from '@/services/go/business.service'
 import { IBusinessSearchParams, IUpdateBusinessSetup } from '@/types/business'
-import { FileIcon, PencilIcon, PlusIcon, TrashIcon, UserRoundPen } from 'lucide-react'
+import { FileIcon, EditIcon, PlusIcon, TrashIcon, UserRoundPen } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 import useSWR from 'swr'
@@ -136,7 +136,7 @@ const BusinessManagementPage = () => {
                   onClick={() => setIdDetail(item.id)}
                   title='Chỉnh sửa thông tin cơ bản'
                 >
-                  <PencilIcon />
+                  <EditIcon />
                 </Button>
                 <Button
                   size='icon'

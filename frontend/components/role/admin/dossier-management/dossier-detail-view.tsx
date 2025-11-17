@@ -9,7 +9,7 @@ import {
   CalendarPlus,
   ChartArea,
   Code,
-  PencilIcon,
+  EditIcon,
   RefreshCcw,
   TrashIcon,
   Type
@@ -89,7 +89,7 @@ const DossierDetailView: React.FC<Props> = (props) => {
             onClick={() => setOpenInfoDossierDialog(true)}
             title='Chỉnh sửa thông tin hồ sơ'
           >
-            <PencilIcon />
+            <EditIcon />
             <span className='hidden md:block'>Chỉnh sửa</span>
           </Button>
         ]}
