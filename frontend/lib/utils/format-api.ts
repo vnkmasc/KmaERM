@@ -38,7 +38,7 @@ export const formatBusiness = {
       ten_viet_tat: data.shortName,
       dia_chi: data.address,
       ma_so_doanh_nghiep: data.businessCode,
-      ngay_cap_msdn_lan_dau: parseDateISOForInput(data.firstIssuedDate),
+      ngay_cap_msdn_lan_dau: parseDateInputToISO(data.firstIssuedDate),
       noi_cap_msdn: data.issuedBy,
       sdt: data.phoneNumber,
       email: data.email ? data.email : undefined,
