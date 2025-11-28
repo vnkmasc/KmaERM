@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'KmaERM',
+  title: 'ErmBCY',
   description: 'Trang quản lý doanh nghiệp KMA',
   icons: {
     icon: '/assets/images/logo.png'

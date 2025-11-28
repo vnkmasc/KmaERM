@@ -40,7 +40,7 @@ export default function SignUpPage() {
     {
       onSuccess: () => {
         signIn({ email: form.getValues('email'), password: form.getValues('password') })
-        showNotification('success', 'Đăng ký tài khoản thành công, chào mừng bạn đến với KmaERM')
+        showNotification('success', 'Đăng ký tài khoản thành công, chào mừng bạn đến với ErmBCY')
         router.refresh()
       },
       onError: (error: any) => {
@@ -66,8 +66,8 @@ export default function SignUpPage() {
                   router.push('/')
                 }}
               >
-                <Image src={logo} alt='kmaerm' width={50} height={50} />
-                <span className='text-main text-xl font-semibold md:text-2xl'>KmaERM</span>
+                <Image src={logo} alt='ErmBCY' width={50} height={50} />
+                <span className='text-main text-xl font-semibold md:text-2xl'>ErmBCY</span>
               </span>
             </DialogTitle>
             <span className='text-xl font-semibold md:text-2xl'>Đăng ký</span>

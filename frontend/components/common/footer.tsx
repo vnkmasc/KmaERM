@@ -16,13 +16,13 @@ const Footer: React.FC = () => {
       <div className='container space-y-4'>
         <div className='flex items-center gap-2 lg:justify-start'>
           <Link href='/'>
-            <Image src={logo} alt='logo' title='KmaERM' width={32} height={32} className='h-8' />
+            <Image src={logo} alt='logo' title='ErmBCY' width={32} height={32} className='h-8' />
           </Link>
-          <h2 className='text-main font-semibold'>KmaERM</h2>
+          <h2 className='text-main font-semibold'>ErmBCY</h2>
         </div>
         <p className='text-muted-foreground text-sm'>Giải pháp quản lý doanh nghiệp ứng dụng Blockchain.</p>
         <div className='flex flex-col justify-between gap-4 md:flex-row'>
-          <p className='text-muted-foreground text-sm'>© 2025 KmaERM. Bản quyền thuộc về Học viện Kỹ thuật mật mã.</p>
+          <p className='text-muted-foreground text-sm'>© 2025 ErmBCY. Bản quyền thuộc về Học viện Kỹ thuật mật mã.</p>
           <ul className='text-muted-foreground flex items-center space-x-6'>
             {defaultSocialLinks.map((social, idx) => (
               <li key={idx} className='hover:text-primary font-medium'>

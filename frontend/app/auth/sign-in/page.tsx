@@ -56,7 +56,7 @@ export default function SignInPage() {
                 }}
               >
                 <Image src={logo} alt='kmasc' width={50} height={50} />
-                <span className='text-main text-xl font-semibold md:text-2xl'>KmaERM</span>
+                <span className='text-main text-xl font-semibold md:text-2xl'>ErmBCY</span>
               </span>
             </DialogTitle>
             <span className='text-xl font-semibold md:text-2xl'>Đăng nhập</span>

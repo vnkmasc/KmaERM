@@ -112,8 +112,8 @@ const Header: React.FC<Props> = (props) => {
 
         <Link href='/'>
           <div className='flex items-center gap-1'>
-            <Image src={logo} alt='logoKmaERM' width={30} height={30} />
-            <h1 className='text-main text-lg font-semibold sm:text-xl'>KmaERM</h1>
+            <Image src={logo} alt='logoErmBCY' width={30} height={30} />
+            <h1 className='text-main text-lg font-semibold sm:text-xl'>ErmBCY</h1>
           </div>
         </Link>
 
