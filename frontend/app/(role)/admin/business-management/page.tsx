@@ -84,7 +84,7 @@ const BusinessManagementPage = () => {
       <Filter
         items={[
           { type: 'input', name: 'shortName', placeholder: 'Nhập tên viết tắt' },
-          { type: 'select', name: 'viName', placeholder: 'Nhập tên tiếng việt' },
+          { type: 'input', name: 'viName', placeholder: 'Nhập tên tiếng việt' },
           { type: 'input', name: 'enName', placeholder: 'Nhập tên tiếng anh' },
           {
             type: 'input',
