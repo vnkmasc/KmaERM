@@ -72,8 +72,6 @@ func (s *hoSoService) CreateHoSo(ctx context.Context, req *dto.CreateHoSoRequest
 		MaHoSo:        generatedMaHoSo,
 		LoaiThuTuc:    req.LoaiThuTuc,
 		NgayDangKy:    req.NgayDangKy,
-		NgayTiepNhan:  req.NgayTiepNhan,
-		NgayHenTra:    req.NgayHenTra,
 		TrangThaiHoSo: "MoiTao",
 	}
 
@@ -239,17 +237,29 @@ func (s *hoSoService) GetHoSoDetails(ctx context.Context, hoSoID uuid.UUID) (*mo
 	return hoSo, nil
 }
 
-func (s *hoSoService) ListHoSo(ctx context.Context, doanhNghiepID uuid.UUID, params *dto.HoSoSearchParams, page int, pageSize int) (*dto.HoSoListResponse, error) {
+func (s *hoSoService) ListHoSo(
+	ctx context.Context,
+	doanhNghiepID uuid.UUID,
+	params *dto.HoSoSearchParams,
+	page int,
+	pageSize int,
+) (*dto.HoSoListResponse, error) {
 
-	// 1. Gọi Repository (Không đổi)
+	// 1. Gọi Repository
 	hoSos, total, err := s.hosoRepo.ListHoSo(ctx, s.db, doanhNghiepID, params, page, pageSize)
 	if err != nil {
 		return nil, fmt.Errorf("lỗi khi lấy danh sách hồ sơ: %w", err)
 	}
 
-	// 2. Tạo DTO Response (đã làm phẳng)
+	// 2. Map sang DTO HoSoDetailsResponse
+	data := make([]dto.HoSoDetailsResponse, len(hoSos))
+	for i, hs := range hoSos {
+		data[i] = dto.ToHoSoDetailsResponse(&hs)
+	}
+
+	// 3. Trả về HoSoListResponse
 	response := &dto.HoSoListResponse{
-		Data:     hoSos,
+		Data:     data,
 		Page:     page,
 		PageSize: pageSize,
 		Total:    total,

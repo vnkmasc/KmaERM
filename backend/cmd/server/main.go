@@ -77,22 +77,27 @@ func main() {
 	hosoRepo := repository.NewHoSoRepository()
 	tailieuRepo := repository.NewTaiLieuRepository()
 	gpRepo := repository.NewGiayPhepRepository()
-
+	userRepo := repository.NewUserRepo(gormDB)
 	//Service
-	dnService := service.NewDoanhNghiepService(dnRepo)
+	dnService := service.NewDoanhNghiepService(dnRepo, userRepo, gormDB)
 	hosoService := service.NewHoSoService(gormDB, hosoRepo, tailieuRepo)
 	gpService := service.NewGiayPhepService(gormDB, gpRepo, hosoRepo, fabricClient)
-
+	userService := service.NewUserService(userRepo)
 	//Handler
 	dnHandler := handler.NewDoanhNghiepHandler(dnService)
 	hosoHandler := handler.NewHoSoHandler(hosoService)
 	gpHandler := handler.NewGiayPhepHandler(gpService)
-
+	authHandler := handler.NewAuthHandler(userService)
+	canBoHandler := handler.NewCanBoHandler(userService)
 	apiGroup := r.Group("/api/v1")
+	protectedGroup := apiGroup.Group("/")
+	protectedGroup.Use(middleware.AuthMiddleware())
 	{
+		authHandler.RegisterRoutes(apiGroup, protectedGroup)
 		dnHandler.RegisterRoutes(apiGroup)
 		hosoHandler.RegisterRoutes(apiGroup)
 		gpHandler.RegisterRoutes(apiGroup)
+		canBoHandler.RegisterRoutes(apiGroup)
 	}
 
 	r.GET("/", func(c *gin.Context) {

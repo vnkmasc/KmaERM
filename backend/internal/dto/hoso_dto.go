@@ -11,8 +11,6 @@ type CreateHoSoRequest struct {
 	DoanhNghiepID uuid.UUID `json:"doanh_nghiep_id" binding:"required"`
 	LoaiThuTuc    string    `json:"loai_thu_tuc" binding:"required"`
 	NgayDangKy    time.Time `json:"ngay_dang_ky" binding:"required"`
-	NgayTiepNhan  time.Time `json:"ngay_tiep_nhan" binding:"required"`
-	NgayHenTra    time.Time `json:"ngay_hen_tra" binding:"required"`
 }
 
 type HoSoSearchParams struct {
@@ -31,7 +29,7 @@ type HoSoSearchParams struct {
 }
 
 type HoSoListResponse struct {
-	Data []models.HoSo `json:"data"`
+	Data []HoSoDetailsResponse `json:"data"`
 
 	Page     int   `json:"page"`
 	PageSize int   `json:"page_size"`
@@ -42,18 +40,18 @@ type GroupedLoaiTaiLieuResponse struct {
 	TaiLieus  []models.LoaiTaiLieu `json:"tai_lieus"`
 }
 type HoSoDetailsResponse struct {
-	ID                 uuid.UUID `json:"id"`
-	DoanhNghiepID      uuid.UUID `json:"doanh_nghiep_id"`
-	TenDoanhnghiepVI   string    `json:"ten_doanh_nghiep_vi"`
-	MaHoSo             string    `json:"ma_ho_so"`
-	LoaiThuTuc         string    `json:"loai_thu_tuc"`
-	NgayDangKy         time.Time `json:"ngay_dang_ky"`
-	NgayTiepNhan       time.Time `json:"ngay_tiep_nhan"`
-	NgayHenTra         time.Time `json:"ngay_hen_tra"`
-	SoGiayPhepTheoHoSo string    `json:"so_giay_phep_theo_ho_so,omitempty"`
-	TrangThaiHoSo      string    `json:"trang_thai_ho_so"`
-	CreatedAt          time.Time `json:"created_at"`
-	UpdatedAt          time.Time `json:"updated_at"`
+	ID                 uuid.UUID  `json:"id"`
+	DoanhNghiepID      uuid.UUID  `json:"doanh_nghiep_id"`
+	TenDoanhnghiepVI   string     `json:"ten_doanh_nghiep_vi"`
+	MaHoSo             string     `json:"ma_ho_so"`
+	LoaiThuTuc         string     `json:"loai_thu_tuc"`
+	NgayDangKy         time.Time  `json:"ngay_dang_ky"`
+	NgayTiepNhan       *time.Time `json:"ngay_tiep_nhan,omitempty"`
+	NgayHenTra         *time.Time `json:"ngay_hen_tra,omitempty"`
+	SoGiayPhepTheoHoSo string     `json:"so_giay_phep_theo_ho_so,omitempty"`
+	TrangThaiHoSo      string     `json:"trang_thai_ho_so"`
+	// CreatedAt          time.Time  `json:"created_at"`
+	// UpdatedAt          time.Time  `json:"updated_at"`
 
 	// DoanhNghiep  *models.DoanhNghiep   `json:"doanh_nghiep,omitempty"`
 	HoSoTaiLieus []HoSoTaiLieuResponse `json:"ho_so_tai_lieus,omitempty"`
@@ -69,6 +67,16 @@ func ToHoSoTaiLieuResponse(hoSoTaiLieu models.HoSoTaiLieu) HoSoTaiLieuResponse {
 }
 
 func ToHoSoDetailsResponse(hoSo *models.HoSo) HoSoDetailsResponse {
+	var ngayTiepNhanPtr *time.Time
+	if !hoSo.NgayTiepNhan.IsZero() {
+		ngayTiepNhanPtr = &hoSo.NgayTiepNhan
+	}
+
+	var ngayHenTraPtr *time.Time
+	if !hoSo.NgayHenTra.IsZero() {
+		ngayHenTraPtr = &hoSo.NgayHenTra
+	}
+
 	response := HoSoDetailsResponse{
 		ID:                 hoSo.ID,
 		DoanhNghiepID:      hoSo.DoanhNghiepID,
@@ -76,13 +84,13 @@ func ToHoSoDetailsResponse(hoSo *models.HoSo) HoSoDetailsResponse {
 		MaHoSo:             hoSo.MaHoSo,
 		LoaiThuTuc:         hoSo.LoaiThuTuc,
 		NgayDangKy:         hoSo.NgayDangKy,
-		NgayTiepNhan:       hoSo.NgayTiepNhan,
-		NgayHenTra:         hoSo.NgayHenTra,
+		NgayTiepNhan:       ngayTiepNhanPtr,
+		NgayHenTra:         ngayHenTraPtr,
 		SoGiayPhepTheoHoSo: hoSo.SoGiayPhepTheoHoSo,
 		TrangThaiHoSo:      hoSo.TrangThaiHoSo,
-		CreatedAt:          hoSo.CreatedAt,
-		UpdatedAt:          hoSo.UpdatedAt,
-		HoSoTaiLieus:       make([]HoSoTaiLieuResponse, len(hoSo.HoSoTaiLieus)),
+		// CreatedAt:          hoSo.CreatedAt,
+		// UpdatedAt:          hoSo.UpdatedAt,
+		HoSoTaiLieus: make([]HoSoTaiLieuResponse, len(hoSo.HoSoTaiLieus)),
 	}
 
 	for i, hstl := range hoSo.HoSoTaiLieus {

@@ -25,6 +25,10 @@ type CreateDoanhNghiepRequest struct {
 	LoaiDinhDanh       string     `json:"loai_dinh_danh"`
 	NgayCapDinhDanh    *time.Time `json:"ngay_cap_dinh_danh"`
 	NoiCapDinhDanh     string     `json:"noi_cap_dinh_danh"`
+
+	AccountEmail    string `json:"account_email" binding:"required,email"`
+	AccountPassword string `json:"account_password" binding:"required,min=6"`
+	AccountFullName string `json:"account_full_name" binding:"required"`
 }
 
 type UpdateDoanhNghiepRequest struct {
@@ -74,18 +78,28 @@ type DoanhNghiepResponse struct {
 func ToDoanhNghiepResponse(dn *models.DoanhNghiep) DoanhNghiepResponse {
 	var hoSoResponses []HoSoDetailsResponse
 	for _, hs := range dn.HoSos {
+		var ngayTiepNhanPtr *time.Time
+		if !hs.NgayTiepNhan.IsZero() {
+			ngayTiepNhanPtr = &hs.NgayTiepNhan
+		}
+
+		var ngayHenTraPtr *time.Time
+		if !hs.NgayHenTra.IsZero() {
+			ngayHenTraPtr = &hs.NgayHenTra
+		}
+
 		hoSoResponses = append(hoSoResponses, HoSoDetailsResponse{
 			ID:                 hs.ID,
 			DoanhNghiepID:      hs.DoanhNghiepID,
 			MaHoSo:             hs.MaHoSo,
 			LoaiThuTuc:         hs.LoaiThuTuc,
 			NgayDangKy:         hs.NgayDangKy,
-			NgayTiepNhan:       hs.NgayTiepNhan,
-			NgayHenTra:         hs.NgayHenTra,
+			NgayTiepNhan:       ngayTiepNhanPtr,
+			NgayHenTra:         ngayHenTraPtr,
 			SoGiayPhepTheoHoSo: hs.SoGiayPhepTheoHoSo,
 			TrangThaiHoSo:      hs.TrangThaiHoSo,
-			CreatedAt:          hs.CreatedAt,
-			UpdatedAt:          hs.UpdatedAt,
+			// CreatedAt:          hs.CreatedAt,
+			// UpdatedAt:          hs.UpdatedAt,
 		})
 	}
 
