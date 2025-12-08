@@ -11,8 +11,10 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/gosimple/slug"
+	"github.com/vnkmasc/KmaERM/backend/internal/dto"
 	"github.com/vnkmasc/KmaERM/backend/internal/models"
 	"github.com/vnkmasc/KmaERM/backend/internal/repository"
+	"golang.org/x/crypto/bcrypt"
 
 	"gorm.io/gorm"
 )
@@ -21,7 +23,7 @@ var ErrMaSoDaTonTai = errors.New("mã số doanh nghiệp đã tồn tại")
 var ErrUploadFile = errors.New("không thể lưu file vật lý")
 
 type DoanhNghiepService interface {
-	Create(dn *models.DoanhNghiep) (*models.DoanhNghiep, error)
+	CreateWithAccount(req *dto.CreateDoanhNghiepRequest) (*models.DoanhNghiep, error)
 	GetByID(id uuid.UUID) (*models.DoanhNghiep, error)
 	GetByMaSo(maSo string) (*models.DoanhNghiep, error)
 	ChangeMSDN(id uuid.UUID, input *ChangeMSDNInput) (*models.DoanhNghiep, error)
@@ -33,25 +35,96 @@ type DoanhNghiepService interface {
 }
 
 type doanhNghiepService struct {
-	dnRepo repository.DoanhNghiepRepository
+	dnRepo   repository.DoanhNghiepRepository
+	userRepo repository.UserRepository // <--- Thêm cái này
+	db       *gorm.DB                  // <--- Cần DB object để bắt đầu Transaction
 }
 
-func NewDoanhNghiepService(dnRepo repository.DoanhNghiepRepository) DoanhNghiepService {
+func NewDoanhNghiepService(dnRepo repository.DoanhNghiepRepository, userRepo repository.UserRepository, db *gorm.DB) DoanhNghiepService {
 	return &doanhNghiepService{
-		dnRepo: dnRepo,
+		dnRepo:   dnRepo,
+		userRepo: userRepo,
+		db:       db,
 	}
 }
+func (s *doanhNghiepService) CreateWithAccount(req *dto.CreateDoanhNghiepRequest) (*models.DoanhNghiep, error) {
+	// 1. Validate cơ bản
+	// Check DN tồn tại
+	if existing, _ := s.dnRepo.GetByMaSo(req.MaSoDoanhNghiep); existing != nil {
+		return nil, errors.New("mã số doanh nghiệp đã tồn tại")
+	}
+	// Check Email Account tồn tại
+	if existingUser, _ := s.userRepo.GetByEmail(req.AccountEmail); existingUser != nil && existingUser.Email != "" {
+		return nil, errors.New("email tài khoản đã được sử dụng")
+	}
 
-func (s *doanhNghiepService) Create(dn *models.DoanhNghiep) (*models.DoanhNghiep, error) {
-	existing, err := s.dnRepo.GetByMaSo(dn.MaSoDoanhNghiep)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	// 2. Hash Password
+	hashedPass, err := bcrypt.GenerateFromPassword([]byte(req.AccountPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, errors.New("lỗi mã hóa mật khẩu")
+	}
+
+	// 3. Bắt đầu Transaction
+	var resultDN models.DoanhNghiep
+
+	// Transaction: Nếu bất kỳ bước nào lỗi, toàn bộ sẽ bị hủy (Rollback)
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+
+		// A. Tạo Doanh Nghiệp
+		newDN := models.DoanhNghiep{
+			TenDoanhNghiepVI:  req.TenDoanhNghiepVI,
+			TenDoanhNghiepEN:  req.TenDoanhNghiepEN,
+			TenVietTat:        req.TenVietTat,
+			DiaChi:            req.DiaChi,
+			MaSoDoanhNghiep:   req.MaSoDoanhNghiep,
+			NgayCapMSDNLanDau: req.NgayCapMSDNLanDau,
+			NoiCapMSDN:        req.NoiCapMSDN,
+			SDT:               req.SDT,
+			Email:             req.Email, // Email chung của cty
+			Website:           req.Website,
+			VonDieuLe:         req.VonDieuLe,
+			NguoiDaiDien:      req.NguoiDaiDien,
+			ChucVu:            req.ChucVu,
+			LoaiDinhDanh:      req.LoaiDinhDanh,
+			NgayCapDinhDanh:   req.NgayCapDinhDanh,
+			NoiCapDinhDanh:    req.NoiCapDinhDanh,
+			Status:            false, // Mặc định là chưa kích hoạt
+		}
+
+		// Truyền 'tx' vào repo
+		if err := s.dnRepo.Create(tx, &newDN); err != nil {
+			return err
+		}
+		resultDN = newDN // Lưu lại để trả về
+
+		// B. Lấy Role DOANH_NGHIEP
+		role, err := s.userRepo.GetRoleByName("DOANH_NGHIEP")
+		if err != nil {
+			return errors.New("role 'DOANH_NGHIEP' chưa được cấu hình trong DB")
+		}
+
+		// C. Tạo User Account
+		newUser := models.User{
+			Email:         req.AccountEmail,
+			PasswordHash:  string(hashedPass),
+			FullName:      req.AccountFullName,
+			IsActive:      true,
+			RoleID:        role.ID,
+			DoanhNghiepID: &newDN.ID, // QUAN TRỌNG: Gắn ID doanh nghiệp vừa tạo
+		}
+
+		if err := s.userRepo.Create(tx, &newUser); err != nil {
+			return err
+		}
+
+		return nil // Commit Transaction
+	})
+
+	if err != nil {
 		return nil, err
 	}
-	if existing != nil {
-		return nil, ErrMaSoDaTonTai
-	}
 
-	return s.dnRepo.Create(dn)
+	return &resultDN, nil
 }
 
 func (s *doanhNghiepService) GetByID(id uuid.UUID) (*models.DoanhNghiep, error) {

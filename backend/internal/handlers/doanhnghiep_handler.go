@@ -15,7 +15,6 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/vnkmasc/KmaERM/backend/internal/dto"
 	"github.com/vnkmasc/KmaERM/backend/internal/helper"
-	"github.com/vnkmasc/KmaERM/backend/internal/models"
 	"github.com/vnkmasc/KmaERM/backend/internal/service"
 	"gorm.io/gorm"
 )
@@ -63,37 +62,25 @@ func (h *DoanhNghiepHandler) Create(c *gin.Context) {
 		return
 	}
 
-	dn := models.DoanhNghiep{
-		TenDoanhNghiepVI:  input.TenDoanhNghiepVI,
-		TenDoanhNghiepEN:  input.TenDoanhNghiepEN,
-		TenVietTat:        input.TenVietTat,
-		DiaChi:            input.DiaChi,
-		MaSoDoanhNghiep:   input.MaSoDoanhNghiep,
-		NgayCapMSDNLanDau: input.NgayCapMSDNLanDau,
-		NoiCapMSDN:        input.NoiCapMSDN,
-		SDT:               input.SDT,
-		Email:             input.Email,
-		Website:           input.Website,
-		VonDieuLe:         input.VonDieuLe,
-		NguoiDaiDien:      input.NguoiDaiDien,
-		ChucVu:            input.ChucVu,
-		LoaiDinhDanh:      input.LoaiDinhDanh,
-		NgayCapDinhDanh:   input.NgayCapDinhDanh,
-		NoiCapDinhDanh:    input.NoiCapDinhDanh,
-	}
-	createdDN, err := h.service.Create(&dn)
+	createdDN, err := h.service.CreateWithAccount(&input)
+
 	if err != nil {
-		if errors.Is(err, service.ErrMaSoDaTonTai) {
-			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+		errMsg := err.Error()
+
+		if errMsg == "mã số doanh nghiệp đã tồn tại" || errMsg == "email tài khoản đã được sử dụng" {
+			c.JSON(http.StatusConflict, gin.H{"error": errMsg})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Không thể tạo doanh nghiệp: " + err.Error()})
+
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lỗi hệ thống: " + errMsg})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": createdDN})
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Đăng ký doanh nghiệp và tài khoản quản trị thành công",
+		"data":    createdDN,
+	})
 }
-
 func (h *DoanhNghiepHandler) GetByID(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := uuid.FromString(idStr)

@@ -7,7 +7,7 @@ import (
 )
 
 type DoanhNghiepRepository interface {
-	Create(dn *models.DoanhNghiep) (*models.DoanhNghiep, error)
+	Create(tx *gorm.DB, dn *models.DoanhNghiep) error
 	GetByID(id uuid.UUID) (*models.DoanhNghiep, error)
 	GetByMaSo(maSo string) (*models.DoanhNghiep, error)
 	Update(dn *models.DoanhNghiep) (*models.DoanhNghiep, error)
@@ -26,13 +26,12 @@ func NewDoanhNghiepRepository(db *gorm.DB) DoanhNghiepRepository {
 	}
 }
 
-func (r *doanhNghiepRepo) Create(dn *models.DoanhNghiep) (*models.DoanhNghiep, error) {
-	result := r.db.Create(dn)
-	if result.Error != nil {
-		return nil, result.Error
+func (r *doanhNghiepRepo) Create(tx *gorm.DB, dn *models.DoanhNghiep) error {
+	// Nếu tx == nil thì dùng r.db mặc định, nhưng trong logic này ta luôn truyền tx
+	if tx == nil {
+		tx = r.db
 	}
-
-	return dn, nil
+	return tx.Create(dn).Error
 }
 
 func (r *doanhNghiepRepo) GetByID(id uuid.UUID) (*models.DoanhNghiep, error) {
@@ -47,13 +46,12 @@ func (r *doanhNghiepRepo) GetByID(id uuid.UUID) (*models.DoanhNghiep, error) {
 
 func (r *doanhNghiepRepo) GetByMaSo(maSo string) (*models.DoanhNghiep, error) {
 	var dn models.DoanhNghiep
-	result := r.db.Where("ma_so_doanh_nghiep = ?", maSo).First(&dn)
-	if result.Error != nil {
-		return nil, result.Error
+	err := r.db.Where("ma_so_doanh_nghiep = ?", maSo).First(&dn).Error
+	if err != nil {
+		return nil, err
 	}
 	return &dn, nil
 }
-
 func (r *doanhNghiepRepo) List(page, limit int, tenVI, tenEN, vietTat, maSo string) ([]models.DoanhNghiep, int64, error) {
 	var dns []models.DoanhNghiep
 	var total int64
