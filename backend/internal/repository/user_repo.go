@@ -12,6 +12,7 @@ type UserRepository interface {
 	GetRoleByName(name string) (*models.Role, error)
 	UpdatePassword(id uuid.UUID, newHash string) error
 	GetByID(id uuid.UUID) (*models.User, error)
+	Update(user *models.User) error
 }
 
 type userRepo struct {
@@ -52,4 +53,8 @@ func (r *userRepo) GetRoleByName(name string) (*models.Role, error) {
 
 func (r *userRepo) UpdatePassword(id uuid.UUID, newHash string) error {
 	return r.db.Model(&models.User{}).Where("id = ?", id).Update("password_hash", newHash).Error
+}
+
+func (r *userRepo) Update(user *models.User) error {
+	return r.db.Save(user).Error
 }

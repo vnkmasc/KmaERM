@@ -2,8 +2,8 @@ version: '3.8'
 
 services:
   postgres_db:
-    image: postgres:latest
-    container_name: KmaERM_PostgresDB
+    image: postgres:16-alpine
+    container_name: kmaerm_postgres
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}

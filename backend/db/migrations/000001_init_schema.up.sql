@@ -54,6 +54,9 @@ CREATE TABLE users (
     password_hash TEXT NOT NULL,
     full_name TEXT,
     is_active BOOLEAN DEFAULT TRUE,
+    -- [MỚI] Cặp khóa RSA để mô phỏng ký số (Remote Signing)
+    private_key_pem TEXT,  -- Key bí mật để ký
+    public_key_pem TEXT,   -- Key công khai để verify
     
     role_id UUID NOT NULL REFERENCES roles(id),
     -- Quan trọng: Link tài khoản với doanh nghiệp (Nếu là user doanh nghiệp)
@@ -115,6 +118,11 @@ CREATE TABLE giay_phep (
     h1_hash TEXT NULL,
     h2_hash TEXT NULL,
     trang_thai_blockchain VARCHAR(100) NULL DEFAULT 'ChuaDongBo',
+    -- [MỚI] Trường phục vụ Ký số
+    chu_ky_so TEXT,             -- Chuỗi chữ ký (Base64)
+    nguoi_ky_id UUID REFERENCES users(id), -- Cán bộ thực hiện ký
+    ngay_ky TIMESTAMPTZ,        -- Thời điểm ký
+    public_key_nguoi_ky TEXT,   -- Snapshot Public Key tại thời điểm ký
     
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -131,6 +139,7 @@ CREATE INDEX idx_hstl_loai_tai_lieu_id ON ho_so_tai_lieu(loai_tai_lieu_id);
 CREATE INDEX idx_tl_ho_so_tai_lieu_id ON tai_lieu(ho_so_tai_lieu_id);
 CREATE INDEX idx_gp_so_giay_phep ON giay_phep(so_giay_phep);
 CREATE INDEX idx_gp_ho_so_id ON giay_phep(ho_so_id); 
+CREATE INDEX idx_gp_nguoi_ky_id ON giay_phep(nguoi_ky_id); 
 
 -- ============================================================
 -- PHẦN 5: DỮ LIỆU KHỞI TẠO (SEED DATA)

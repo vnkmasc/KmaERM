@@ -26,9 +26,11 @@ func NewGiayPhepHandler(gpService service.GiayPhepService) *GiayPhepHandler {
 	}
 }
 
-func (h *GiayPhepHandler) RegisterRoutes(router *gin.RouterGroup) {
+// Thêm tham số authMiddleware kiểu gin.HandlerFunc vào hàm
+func (h *GiayPhepHandler) RegisterRoutes(router *gin.RouterGroup, authMiddleware gin.HandlerFunc) {
 	gpGroup := router.Group("/giay-phep")
 	{
+		// Các API này KHÔNG có middleware (chạy tự do)
 		gpGroup.POST("", h.CreateGiayPhep)
 		gpGroup.GET("", h.ListGiayPhep)
 		gpGroup.GET("/:id", h.GetGiayPhepByID)
@@ -39,8 +41,11 @@ func (h *GiayPhepHandler) RegisterRoutes(router *gin.RouterGroup) {
 		gpGroup.POST("/:id/push-blockchain", h.PushToBlockchain)
 		gpGroup.GET("/:id/verify", h.VerifyGiayPhep)
 
+		// --- CHỈ CÓ API NÀY GẮN MIDDLEWARE ---
+		// Cú pháp: .POST(path, middleware, handler)
+		// Middleware chạy xong -> mới đến h.KySo
+		gpGroup.POST("/:id/ky-so", authMiddleware, h.KySo)
 	}
-
 }
 
 func (h *GiayPhepHandler) CreateGiayPhep(c *gin.Context) {
@@ -387,4 +392,46 @@ func (h *GiayPhepHandler) VerifyGiayPhep(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, resp)
+}
+
+func (h *GiayPhepHandler) KySo(c *gin.Context) {
+	// 1. Lấy ID giấy phép từ URL
+	idStr := c.Param("id")
+
+	// --- [SỬA ĐOẠN NÀY] ---
+	// gofrs/uuid dùng FromString thay vì Parse
+	gpID, err := uuid.FromString(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID giấy phép không hợp lệ"})
+		return
+	}
+
+	// 2. Lấy UserID (tương tự)
+	userIDVal, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Chưa đăng nhập"})
+		return
+	}
+
+	// Lưu ý: Nếu userID trong context đang là string thì cũng cần parse lại
+	// Nếu userID trong context đã là kiểu uuid.UUID rồi thì ép kiểu thẳng:
+	userID := userIDVal.(uuid.UUID)
+
+	// 3. Gọi Service
+	err = h.gpService.KySoGiayPhep(c.Request.Context(), gpID, userID)
+	if err != nil {
+		// [FIX LỖI 500 -> 409] Kiểm tra nội dung lỗi
+		if err.Error() == "giấy phép này đã được ký rồi" {
+			c.JSON(http.StatusConflict, gin.H{ // Trả về 409 Conflict
+				"error": "Giấy phép này đã hoàn tất ký số, không thể ký lại.",
+			})
+			return
+		}
+
+		// Các lỗi khác (thiếu key, thiếu file...) thì trả về 400 hoặc 500
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Ký số thành công!", "status": "DaKy"})
 }
