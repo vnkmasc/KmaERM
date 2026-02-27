@@ -20,6 +20,8 @@ backend/wallet/
 backend/config/credentials/
 backend/config/tls/
 backend/server.exe
+backend/temp_data/
+uploads/
 
 
 
