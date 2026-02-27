@@ -533,7 +533,6 @@ func (s *giayPhepService) KySoGiayPhep(ctx context.Context, giayPhepID uuid.UUID
 	err = s.gpRepo.UpdateGiayPhep(ctx, s.db, gp)
 	if err == nil {
 		fmt.Println(" Đã lưu chữ ký và cập nhật trạng thái vào Database.")
-		fmt.Println("=======================================================\n")
 	}
 	return err
 }
