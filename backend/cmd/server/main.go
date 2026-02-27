@@ -11,6 +11,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
 
+	benchmark "github.com/vnkmasc/KmaERM/backend/internal/benchmark"
 	handler "github.com/vnkmasc/KmaERM/backend/internal/handlers"
 	"github.com/vnkmasc/KmaERM/backend/internal/middleware"
 	"github.com/vnkmasc/KmaERM/backend/internal/repository"
@@ -72,31 +73,53 @@ func main() {
 	}
 	r.SetTrustedProxies([]string{trusted})
 
-	//Repository
+	benchHandler := benchmark.NewBenchmarkHandler()
+
+	// Tạo nhóm API riêng để test
+	demoGroup := r.Group("/api/v1/demo")
+	{
+		demoGroup.GET("/sequential", benchHandler.SequentialProcess)
+		demoGroup.GET("/parallel", benchHandler.ParallelProcess)
+	}
+
+	// Repository
 	dnRepo := repository.NewDoanhNghiepRepository(gormDB)
 	hosoRepo := repository.NewHoSoRepository()
 	tailieuRepo := repository.NewTaiLieuRepository()
 	gpRepo := repository.NewGiayPhepRepository()
 	userRepo := repository.NewUserRepo(gormDB)
-	//Service
+
+	// Service
 	dnService := service.NewDoanhNghiepService(dnRepo, userRepo, gormDB)
 	hosoService := service.NewHoSoService(gormDB, hosoRepo, tailieuRepo)
-	gpService := service.NewGiayPhepService(gormDB, gpRepo, hosoRepo, fabricClient)
+
+	// [THAY ĐỔI 1]: Thêm userRepo vào hàm khởi tạo GiayPhepService
+	gpService := service.NewGiayPhepService(gormDB, gpRepo, hosoRepo, userRepo, fabricClient)
+
 	userService := service.NewUserService(userRepo)
-	//Handler
+
+	// Handler
 	dnHandler := handler.NewDoanhNghiepHandler(dnService)
 	hosoHandler := handler.NewHoSoHandler(hosoService)
 	gpHandler := handler.NewGiayPhepHandler(gpService)
 	authHandler := handler.NewAuthHandler(userService)
 	canBoHandler := handler.NewCanBoHandler(userService)
+
 	apiGroup := r.Group("/api/v1")
+
+	// Middleware Auth được khởi tạo ở đây để tái sử dụng
+	authMiddleware := middleware.AuthMiddleware()
+
 	protectedGroup := apiGroup.Group("/")
-	protectedGroup.Use(middleware.AuthMiddleware())
+	protectedGroup.Use(authMiddleware)
 	{
 		authHandler.RegisterRoutes(apiGroup, protectedGroup)
 		dnHandler.RegisterRoutes(apiGroup)
 		hosoHandler.RegisterRoutes(apiGroup)
-		gpHandler.RegisterRoutes(apiGroup)
+
+		// [THAY ĐỔI 2]: Truyền thêm authMiddleware vào đây để route Ký số sử dụng
+		gpHandler.RegisterRoutes(apiGroup, authMiddleware)
+
 		canBoHandler.RegisterRoutes(apiGroup)
 	}
 

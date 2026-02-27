@@ -18,6 +18,7 @@ import (
 	"github.com/vnkmasc/KmaERM/backend/internal/models"
 	"github.com/vnkmasc/KmaERM/backend/internal/repository"
 	"github.com/vnkmasc/KmaERM/backend/pkg/blockchain"
+	"github.com/vnkmasc/KmaERM/backend/utils"
 	"gorm.io/gorm"
 )
 
@@ -42,6 +43,7 @@ type GiayPhepService interface {
 	UploadGiayPhepFile(ctx context.Context, giayPhepID uuid.UUID, tempFilePath string, fileName string) (*dto.GiayPhepResponse, error)
 	PushToBlockchain(ctx context.Context, giayPhepID uuid.UUID) error
 	VerifyGiayPhep(ctx context.Context, giayPhepID uuid.UUID) (*dto.VerifyGiayPhepResponse, error)
+	KySoGiayPhep(ctx context.Context, giayPhepID uuid.UUID, userID uuid.UUID) error
 }
 
 type giayPhepService struct {
@@ -49,18 +51,21 @@ type giayPhepService struct {
 	gpRepo       repository.GiayPhepRepository
 	hosoRepo     repository.HoSoRepository
 	fabricClient *blockchain.FabricClient
+	userRepo     repository.UserRepository
 }
 
 func NewGiayPhepService(
 	db *gorm.DB,
 	gpRepo repository.GiayPhepRepository,
 	hosoRepo repository.HoSoRepository,
+	userRepo repository.UserRepository,
 	fabricClient *blockchain.FabricClient,
 ) GiayPhepService {
 	return &giayPhepService{
 		db:           db,
 		gpRepo:       gpRepo,
 		hosoRepo:     hosoRepo,
+		userRepo:     userRepo,
 		fabricClient: fabricClient,
 	}
 }
@@ -270,7 +275,6 @@ func (s *giayPhepService) UploadGiayPhepFile(
 	fileName string,
 ) (*dto.GiayPhepResponse, error) {
 
-	// 1. Lấy bản ghi GiayPhep (Không đổi)
 	giayPhep, err := s.gpRepo.GetGiayPhepByID(ctx, s.db, giayPhepID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -361,7 +365,6 @@ func (s *giayPhepService) mapGiayPhepToResponse(ctx context.Context, giayPhep *m
 }
 
 func (s *giayPhepService) PushToBlockchain(ctx context.Context, giayPhepID uuid.UUID) error {
-	// 1. Lấy thông tin giấy phép (model, KHÔNG PHẢI DTO)
 	giayPhep, err := s.gpRepo.GetGiayPhepByID(ctx, s.db, giayPhepID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -370,7 +373,6 @@ func (s *giayPhepService) PushToBlockchain(ctx context.Context, giayPhepID uuid.
 		return err
 	}
 
-	// 2. Kiểm tra nghiệp vụ
 	if s.fabricClient == nil || s.fabricClient.Contract() == nil {
 		return ErrBlockchainOffline
 	}
@@ -381,30 +383,23 @@ func (s *giayPhepService) PushToBlockchain(ctx context.Context, giayPhepID uuid.
 	if giayPhep.TrangThaiBlockchain != nil && *giayPhep.TrangThaiBlockchain == TrangThaiBCDaDongBo {
 		return ErrGiayPhepDaDongBo
 	}
-	// (Cho phép retry nếu trạng thái là "ChuaDongBo" hoặc "LoiDongBo")
 
-	// 3. Chuẩn bị dữ liệu gọi Fabric
 	chaincodeFunc := "SubmitLisence"
 	giayPhepIDStr := giayPhep.ID.String()
 	h1Str := *giayPhep.H1Hash
 	h2Str := *giayPhep.H2Hash
 
-	// 4. Gọi Fabric
 	_, err = s.fabricClient.SubmitTransaction(chaincodeFunc, giayPhepIDStr, h1Str, h2Str)
 
-	// 5. Cập nhật CSDL dựa trên kết quả
 	if err != nil {
-		// Fabric thất bại -> Cập nhật trạng thái là Lỗi
 		statusError := TrangThaiBCLoiDongBo
 		giayPhep.TrangThaiBlockchain = &statusError
 		if updateErr := s.gpRepo.UpdateGiayPhep(ctx, s.db, giayPhep); updateErr != nil {
 			return fmt.Errorf("lỗi Fabric: %w (và không thể cập nhật CSDL: %s)", err, updateErr.Error())
 		}
-		// Trả về lỗi Fabric gốc
 		return fmt.Errorf("lỗi khi submit Fabric: %w", err)
 	}
 
-	// Fabric thành công -> Cập nhật trạng thái là Đã Đồng Bộ
 	statusSuccess := "TrangThaiBCDaDongBo"
 	giayPhep.TrangThaiBlockchain = &statusSuccess
 	if err := s.gpRepo.UpdateGiayPhep(ctx, s.db, giayPhep); err != nil {
@@ -473,4 +468,72 @@ func (s *giayPhepService) VerifyGiayPhep(ctx context.Context, giayPhepID uuid.UU
 	}
 
 	return resp, nil
+}
+
+func (s *giayPhepService) KySoGiayPhep(ctx context.Context, giayPhepID uuid.UUID, userID uuid.UUID) error {
+	// 1. Lấy thông tin Giấy phép
+	gp, err := s.gpRepo.GetGiayPhepByID(ctx, s.db, giayPhepID)
+	if err != nil {
+		return err
+	}
+
+	// [LOG DEMO] Bắt đầu quy trình
+	fmt.Println("\n=======================================================")
+	fmt.Println(" BẮT ĐẦU QUY TRÌNH KÝ SỐ (DIGITAL SIGNATURE PROCESS)")
+	fmt.Println("=======================================================")
+	fmt.Printf(" Giấy phép ID: %s\n", gp.ID)
+
+	// Validate trạng thái
+	if gp.TrangThaiGiayPhep == "DaKy" {
+		fmt.Println(" LỖI: Giấy phép này đã được ký trước đó.")
+		return errors.New("giấy phép này đã được ký rồi")
+	}
+	if gp.H2Hash == nil || *gp.H2Hash == "" {
+		fmt.Println(" LỖI: Không tìm thấy H2Hash (Chưa upload file).")
+		return errors.New("giấy phép chưa có file đính kèm hoặc chưa tính H2Hash")
+	}
+
+	fmt.Printf(" Hash của tài liệu gốc (H2Hash): %s\n", *gp.H2Hash)
+
+	// 2. Lấy thông tin User & Key
+	user, err := s.userRepo.GetByID(userID)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("yw Người ký: %s (Email: %s)\n", user.FullName, user.Email)
+
+	if user.PrivateKeyPEM == nil || *user.PrivateKeyPEM == "" {
+		fmt.Println(" LỖI: Cán bộ chưa có Private Key.")
+		return errors.New("tài khoản này chưa được cấu hình Chữ ký số")
+	}
+
+	// [LOG DEMO] Giả lập hiển thị key (chỉ hiện 1 phần để bảo mật)
+	fmt.Println(" Đã tải Private Key của cán bộ (RSA 2048-bit).")
+	fmt.Println("   --> Key prefix: " + (*user.PrivateKeyPEM)[0:50] + "...")
+
+	// 3. Thực hiện Ký số
+	fmt.Println("  Đang thực hiện thuật toán ký RSA...")
+	signature, err := utils.SignHash(*gp.H2Hash, *user.PrivateKeyPEM)
+	if err != nil {
+		return err
+	}
+
+	// [LOG DEMO] Kết quả
+	fmt.Println(" Ký thành công!")
+	fmt.Printf("hm Chữ ký số sinh ra (Base64): %s...\n", signature[0:60]) // In 60 ký tự đầu
+
+	// 4. Cập nhật DB
+	now := time.Now()
+	gp.ChuKySo = &signature
+	gp.NguoiKyID = &userID
+	gp.NgayKy = &now
+	gp.PublicKeyNguoiKy = user.PublicKeyPEM
+	gp.TrangThaiGiayPhep = "DaKy"
+
+	err = s.gpRepo.UpdateGiayPhep(ctx, s.db, gp)
+	if err == nil {
+		fmt.Println(" Đã lưu chữ ký và cập nhật trạng thái vào Database.")
+		fmt.Println("=======================================================\n")
+	}
+	return err
 }

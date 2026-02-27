@@ -1,0 +1,3 @@
+ALTER TABLE users 
+DROP COLUMN IF EXISTS otp_code,
+DROP COLUMN IF EXISTS otp_expiry;

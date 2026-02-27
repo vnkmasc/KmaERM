@@ -13,6 +13,7 @@ import (
 	"github.com/vnkmasc/KmaERM/backend/internal/dto"
 	"github.com/vnkmasc/KmaERM/backend/internal/models"
 	"github.com/vnkmasc/KmaERM/backend/internal/repository"
+	"github.com/vnkmasc/KmaERM/backend/utils"
 	"gorm.io/gorm"
 )
 
@@ -268,16 +269,25 @@ func (s *hoSoService) ListHoSo(
 	return response, nil
 }
 
-func (s *hoSoService) UploadTaiLieu(ctx context.Context, req *dto.UploadTaiLieuRequest, tempFilePath string, fileName string) (*models.TaiLieu, error) {
+func (s *hoSoService) UploadTaiLieu(
+	ctx context.Context,
+	req *dto.UploadTaiLieuRequest,
+	tempFilePath string,
+	fileName string,
+) (*models.TaiLieu, error) {
 
+	// 1. Kiểm tra khe tài liệu
 	var kheTaiLieu models.HoSoTaiLieu
-	if err := s.db.WithContext(ctx).First(&kheTaiLieu, "id = ?", req.HoSoTaiLieuID).Error; err != nil {
+	if err := s.db.WithContext(ctx).
+		First(&kheTaiLieu, "id = ?", req.HoSoTaiLieuID).Error; err != nil {
+
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrKheTaiLieuKhongTonTai
 		}
 		return nil, fmt.Errorf("lỗi khi kiểm tra khe cắm tài liệu: %w", err)
 	}
 
+	// 2. Chuẩn bị đường dẫn
 	hoSoID := kheTaiLieu.HoSoID.String()
 	uniqueFileName := filepath.Base(tempFilePath)
 
@@ -288,26 +298,62 @@ func (s *hoSoService) UploadTaiLieu(ctx context.Context, req *dto.UploadTaiLieuR
 		return nil, fmt.Errorf("không thể tạo thư mục chính thức: %w", err)
 	}
 
-	if err := os.Rename(tempFilePath, finalDst); err != nil {
-		return nil, fmt.Errorf("không thể di chuyển file: %w", err)
+	// 3. Đọc file gốc
+	plainContent, err := os.ReadFile(tempFilePath)
+	if err != nil {
+		return nil, fmt.Errorf("không thể đọc file upload: %w", err)
 	}
 
+	// 4. Generate DEK
+	dek, err := utils.GenerateRandomKey()
+	if err != nil {
+		return nil, fmt.Errorf("không thể tạo DEK: %w", err)
+	}
+
+	// 5. Encrypt FILE bằng DEK
+	encryptedFile, err := utils.EncryptAES(plainContent, dek)
+	if err != nil {
+		return nil, fmt.Errorf("mã hóa file thất bại: %w", err)
+	}
+
+	// 6. Encrypt DEK bằng KEK
+	kek, err := utils.GetKEK()
+	if err != nil {
+		return nil, fmt.Errorf("không thể lấy KEK: %w", err)
+	}
+
+	encryptedDEK, err := utils.EncryptAES(dek, kek)
+	if err != nil {
+		return nil, fmt.Errorf("mã hóa DEK thất bại: %w", err)
+	}
+
+	// 7. Ghi FILE ĐÃ MÃ HÓA ra đĩa
+	if err := os.WriteFile(finalDst, encryptedFile, 0644); err != nil {
+		return nil, fmt.Errorf("không thể ghi file mã hóa: %w", err)
+	}
+	_ = os.Remove(tempFilePath)
+
+	// 8. Chuẩn bị metadata DB
 	tieuDe := req.TieuDe
 	if tieuDe == "" {
 		tieuDe = fileName
 	}
 
-	relativePath := filepath.ToSlash(filepath.Join("uploads", "ho_so", hoSoID, uniqueFileName))
+	relativePath := filepath.ToSlash(
+		filepath.Join("uploads", "ho_so", hoSoID, uniqueFileName),
+	)
 
 	taiLieu := models.TaiLieu{
 		HoSoTaiLieuID: req.HoSoTaiLieuID,
 		TieuDe:        tieuDe,
 		DuongDan:      relativePath,
+		EncryptedDEK:  encryptedDEK, // ✅ KHÔNG NULL
 		CreatedAt:     time.Now(),
 	}
 
+	// 9. Lưu DB
 	if err := s.tailieuRepo.CreateTaiLieu(ctx, s.db, &taiLieu); err != nil {
-		os.Remove(finalDst)
+		_ = os.Remove(finalDst)
 		return nil, fmt.Errorf("lỗi lưu thông tin file vào CSDL: %w", err)
 	}
 
