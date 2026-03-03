@@ -6,6 +6,9 @@ APP_NAME="kmaerm-frontend"
 # Nếu truyền tham số "install" thì chạy npm install
 if [ "$1" = "install" ]; then
     echo "📦 Running npm install..."
+    npm install
+elif [ "$1" = "ci" ]; then
+    echo "📦 Running npm ci..."
     npm ci
 fi
 
