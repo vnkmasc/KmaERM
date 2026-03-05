@@ -151,14 +151,12 @@ const InfoDossierDialog: React.FC<Props> = (props) => {
           name: 'receivedDate',
           label: 'Ngày tiếp nhận',
           type: 'input',
-          required: true,
           setting: { input: { type: 'datetime-local' } }
         },
         {
           name: 'expectedReturnDate',
           label: 'Ngày hẹn trả',
           type: 'input',
-          required: true,
           setting: { input: { type: 'datetime-local' } }
         }
       ]}
