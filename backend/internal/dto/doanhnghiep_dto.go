@@ -26,9 +26,9 @@ type CreateDoanhNghiepRequest struct {
 	NgayCapDinhDanh    *time.Time `json:"ngay_cap_dinh_danh"`
 	NoiCapDinhDanh     string     `json:"noi_cap_dinh_danh"`
 
-	AccountEmail    string `json:"account_email" binding:"required,email"`
-	AccountPassword string `json:"account_password" binding:"required,min=6"`
-	AccountFullName string `json:"account_full_name" binding:"required"`
+	// AccountEmail    string `json:"account_email" binding:"required,email"`
+	// AccountPassword string `json:"account_password" binding:"required,min=6"`
+	// AccountFullName string `json:"account_full_name" binding:"required"`
 }
 
 type UpdateDoanhNghiepRequest struct {
